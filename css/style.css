@@ -1,0 +1,951 @@
+/* KGU DP QUEST - スタイル定義
+   デザイン方針（14章）：大学公式サイトのような堅さも、子供向けゲームらしさも避ける。
+   イメージ：大学 × RPG × デジタルツイン × 未来都市。
+   配色：測量・橋梁・インフラを連想させる青系＋差し色に橙・緑。 */
+
+:root {
+  --color-bg: #060c18;
+  --color-bg-alt: #0c1830;
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-border: rgba(148, 180, 220, 0.25);
+
+  --color-primary: #3aa0ff;
+  --color-primary-strong: #6fc3ff;
+  --color-accent-orange: #ff8a3d;
+  --color-accent-green: #3ddc97;
+
+  --color-text: #eef3fb;
+  --color-text-muted: #9fb3d1;
+
+  --color-focus-ring: #ffd166;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+    "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 3rem;
+
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-size-adjust: 100%;
+  /* iOS Safariのタップ時グレーフラッシュを消し、:active の演出に統一する */
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* フォーカス可視化（キーボード操作対応：16章） */
+:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+/* ===== 汎用ボタン ===== */
+
+.btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.9em 2em;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+  /* タップ後の反応待ち（ダブルタップズーム判定）を無効化し、タッチの体感速度を上げる */
+  touch-action: manipulation;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  color: #06121f;
+  background: linear-gradient(135deg, var(--color-primary-strong), var(--color-primary));
+  box-shadow: 0 0 0 1px rgba(58, 160, 255, 0.4), 0 8px 24px rgba(58, 160, 255, 0.25);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 0 1px rgba(255, 138, 61, 0.5), 0 8px 28px rgba(255, 138, 61, 0.3);
+}
+
+.btn-secondary {
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+}
+
+/* ===== 共通スクリーンレイアウト ===== */
+
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-2);
+  /* ノッチ・ホームインジケーターのある端末（viewport-fit=cover）でも
+     コンテンツが画面端に密着しないようにする */
+  padding-left: max(var(--space-2), env(safe-area-inset-left));
+  padding-right: max(var(--space-2), env(safe-area-inset-right));
+  padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== TOP画面 ===== */
+
+.screen-top {
+  background:
+    radial-gradient(60% 50% at 50% 20%, rgba(58, 160, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+}
+
+/* 都市・データ・ネットワークを抽象化した背景パターン（画像は使わずCSSのみで表現） */
+.top-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(63, 130, 200, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(63, 130, 200, 0.14) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(75% 65% at 50% 40%, #000 40%, transparent 90%);
+  -webkit-mask-image: radial-gradient(75% 65% at 50% 40%, #000 40%, transparent 90%);
+}
+
+.top-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 40rem;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  animation: rise-in var(--transition-normal) both;
+}
+
+.top-title {
+  font-size: clamp(2.25rem, 8vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: linear-gradient(90deg, var(--color-primary-strong), var(--color-accent-green));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.top-subtitle {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.top-message {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: left;
+}
+
+.top-message p {
+  font-size: 0.98rem;
+  color: var(--color-text);
+}
+
+.top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+/* ===== STAGE共通（出題・シナリオ画面） ===== */
+
+.screen-stage {
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(58, 160, 255, 0.14), transparent 70%),
+    var(--color-bg);
+  align-items: flex-start;
+  padding-top: var(--space-5);
+  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.stage-inner {
+  max-width: 36rem;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  animation: rise-in var(--transition-normal) both;
+}
+
+.stage-progress {
+  color: var(--color-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.stage-mission-title {
+  font-size: clamp(1.15rem, 3.5vw, 1.5rem);
+  font-weight: 800;
+  color: var(--color-primary-strong);
+}
+
+.bridge-diagram {
+  width: 100%;
+  max-width: 20rem;
+}
+
+.bridge-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.stage-question {
+  font-size: clamp(1.05rem, 3vw, 1.25rem);
+  font-weight: 700;
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.choice-btn {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85em 1.1em;
+  min-height: 44px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.choice-btn:not(:disabled):hover {
+  border-color: var(--color-primary-strong);
+}
+
+.choice-btn:disabled {
+  cursor: default;
+}
+
+.choice-correct {
+  border-color: var(--color-accent-green);
+  background: rgba(61, 220, 151, 0.14);
+  color: var(--color-accent-green);
+}
+
+.choice-incorrect {
+  border-color: var(--color-accent-orange);
+  background: rgba(255, 138, 61, 0.14);
+  color: var(--color-accent-orange);
+}
+
+/* 正解／不正解を出さないステージ（SEE等）向けの中立な「選択中」状態。
+   色だけに頼ると色覚多様性・グレースケール環境で判別できないため、
+   枠線を太くして構造的な差（明度・色相に依存しない差）で示す（16章）。 */
+.choice-selected {
+  border-width: 3px;
+  border-color: var(--color-primary-strong);
+  background: rgba(58, 160, 255, 0.14);
+  padding: calc(0.85em - 2px) calc(1.1em - 2px);
+}
+
+.stage-feedback {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.feedback-correct {
+  color: var(--color-accent-green);
+}
+
+.feedback-incorrect {
+  color: var(--color-accent-orange);
+}
+
+.feedback-neutral {
+  color: var(--color-primary-strong);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  text-align: left;
+}
+
+.scenario-fact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+}
+
+.scenario-fact-list li {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6em 1em;
+  font-size: 0.95rem;
+}
+
+.scenario-fact-list li::before {
+  content: '・';
+  color: var(--color-accent-orange);
+  margin-right: 0.3em;
+}
+
+.stage-round2-lead {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ===== STAGE3 THINK ===== */
+
+.alert-box {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(255, 138, 61, 0.08);
+  border: 1px solid rgba(255, 138, 61, 0.4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+}
+
+.alert-icon {
+  flex: 0 0 auto;
+  width: 3.5rem;
+}
+
+.alert-icon svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.alert-text p {
+  font-size: 0.95rem;
+}
+
+.alert-text p:first-child {
+  font-weight: 700;
+}
+
+.step-reminder {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.info-card-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-card {
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.2em 1em;
+}
+
+.info-card-viewed {
+  border-color: var(--color-accent-green);
+}
+
+.info-card-summary {
+  cursor: pointer;
+  padding: 0.7em 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  font-weight: 700;
+  list-style: revert;
+  touch-action: manipulation;
+}
+
+.info-card-summary::marker {
+  color: var(--color-primary-strong);
+}
+
+.info-card-body {
+  padding-bottom: 0.8em;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ===== STAGE4 ACT ===== */
+
+.briefing-box {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+}
+
+.blocked-box {
+  width: 100%;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-accent-orange);
+  background: rgba(255, 138, 61, 0.08);
+  border: 1px solid rgba(255, 138, 61, 0.4);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+}
+
+.character-card {
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-strong);
+  border-radius: var(--radius-md);
+  padding: 0.7em 1em;
+}
+
+.character-name {
+  font-weight: 800;
+  color: var(--color-primary-strong);
+}
+
+.character-role {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.dialogue-box {
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-style: italic;
+}
+
+.recap-box {
+  width: 100%;
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.recap-title {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 0.4em;
+}
+
+.recap-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recap-list li {
+  background: rgba(58, 160, 255, 0.14);
+  border: 1px solid var(--color-primary-strong);
+  border-radius: 999px;
+  padding: 0.3em 0.9em;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* ===== QUEST COMPLETE + DP解説 ===== */
+
+.complete-badges-inner {
+  gap: var(--space-3);
+}
+
+.complete-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.complete-badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.complete-title {
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+}
+
+.reveal-inner {
+  gap: var(--space-3);
+}
+
+.reveal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.reveal-text p {
+  font-size: clamp(1.15rem, 4vw, 1.5rem);
+  font-weight: 800;
+  color: var(--color-accent-green);
+}
+
+.dp-mapping-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dp-mapping-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.7em 1em;
+  text-align: left;
+}
+
+.dp-mapping-from {
+  font-weight: 800;
+  color: var(--color-primary-strong);
+  min-width: 4.5rem;
+}
+
+.dp-mapping-arrow {
+  color: var(--color-text-muted);
+}
+
+.dp-mapping-to {
+  font-weight: 600;
+}
+
+/* ===== MY DP STATUS ===== */
+
+.status-form-inner {
+  gap: var(--space-3);
+}
+
+.assessment-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.assessment-row {
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-2);
+  text-align: left;
+}
+
+.assessment-legend {
+  padding: 0 0.3em;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.scale-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.scale-btn {
+  flex: 1;
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.scale-btn:hover {
+  border-color: var(--color-primary-strong);
+}
+
+/* .choice-selected同様、色だけに頼らず枠線の太さでも選択状態を示す */
+.scale-btn-selected {
+  border-width: 3px;
+  border-color: var(--color-primary-strong);
+  background: rgba(58, 160, 255, 0.18);
+  color: var(--color-primary-strong);
+}
+
+.level-bar-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.level-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.level-bar-label {
+  width: 4.5rem;
+  flex-shrink: 0;
+  text-align: left;
+  font-weight: 800;
+}
+
+.level-bar-track {
+  flex: 1;
+  display: block;
+  height: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.level-bar-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary-strong), var(--color-accent-green));
+  border-radius: 999px;
+}
+
+.level-bar-value {
+  width: 3.5rem;
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.status-disclaimer {
+  width: 100%;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+}
+
+/* ===== YOUR NEXT QUEST ===== */
+
+.next-quest-inner {
+  gap: var(--space-2);
+}
+
+.grade-select-label {
+  align-self: flex-start;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.grade-select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6em 0.8em;
+  margin-bottom: var(--space-1);
+  /* 見た目はカスタムするが、タップ時は各OSのネイティブpickerに委ねる（モバイルUIとの親和性） */
+}
+
+.course-map {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+  animation: rise-in var(--transition-normal) both;
+}
+
+.course-map-label {
+  font-weight: 800;
+  color: var(--color-primary-strong);
+}
+
+.course-map-label:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.subject-section-title {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin-bottom: 0.4em;
+}
+
+.subject-section-past .subject-section-title {
+  color: var(--color-accent-green);
+}
+
+.subject-section-upcoming .subject-section-title {
+  color: var(--color-accent-orange);
+}
+
+.subject-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.subject-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6em 1em;
+}
+
+.subject-name {
+  font-weight: 700;
+}
+
+.subject-dp {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.course-map-note {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+/* ===== バッジ獲得画面 ===== */
+
+.badge-inner {
+  gap: var(--space-2);
+}
+
+.badge-icon {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #06121f;
+  background: linear-gradient(135deg, var(--color-primary-strong), var(--color-accent-green));
+  box-shadow: 0 0 0 4px rgba(111, 195, 255, 0.2), 0 12px 32px rgba(58, 160, 255, 0.35);
+  animation: badge-pop var(--transition-normal) both;
+}
+
+/* KNOW/SEE/THINK/ACTは同じ円形バッジでも、形（角丸半径）と頭文字テキストの両方で
+   区別する。色だけに依存しない（16章）。 */
+.badge-see {
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-primary-strong));
+}
+
+.badge-think {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(135deg, var(--color-accent-green), var(--color-accent-orange));
+}
+
+.badge-act {
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: linear-gradient(135deg, var(--color-primary-strong), var(--color-accent-green) 55%, var(--color-accent-orange));
+}
+
+.badge-label {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.badge-title {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
+  color: var(--color-accent-green);
+}
+
+.badge-explain {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: left;
+}
+
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== プレースホルダー画面（未実装Phase向け） ===== */
+
+.screen-placeholder {
+  background: var(--color-bg);
+}
+
+.placeholder-inner {
+  max-width: 28rem;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.placeholder-inner h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent-orange);
+}
+
+.placeholder-inner p {
+  color: var(--color-text-muted);
+}
+
+/* ===== アニメーション（15章：必要最小限） ===== */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===== レスポンシブ（スマホ幅） ===== */
+
+@media (max-width: 480px) {
+  .top-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
