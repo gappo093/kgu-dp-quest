@@ -39,6 +39,25 @@ export function renderStatus({ initialSelfAssessment, onSave, onComplete }) {
     intro.textContent = data.formIntro;
     wrap.appendChild(intro);
 
+    const guideBox = document.createElement('div');
+    guideBox.className = 'guide-box';
+
+    const guideTitle = document.createElement('p');
+    guideTitle.className = 'guide-title';
+    guideTitle.textContent = data.guideTitle;
+    guideBox.appendChild(guideTitle);
+
+    const guideList = document.createElement('div');
+    guideList.className = 'guide-list';
+    data.guide.forEach((g) => {
+      const row = document.createElement('p');
+      row.className = 'guide-row';
+      row.textContent = `${g.value} — ${g.text}`;
+      guideList.appendChild(row);
+    });
+    guideBox.appendChild(guideList);
+    wrap.appendChild(guideBox);
+
     const list = document.createElement('div');
     list.className = 'assessment-list';
 
@@ -157,12 +176,12 @@ export function renderStatus({ initialSelfAssessment, onSave, onComplete }) {
 // QUEST全体の最後の画面。学年は送信・保存せず、その場の表示切り替えにのみ使う
 // （state.jsのスキーマには一切影響しない）。オープンキャンパス参加者・保護者・
 // 教職員など学年を持たない利用者もいる（2章）ため、学年未選択でも終了できるようにする。
-export function renderNextQuest({ onReview, onRestart }) {
+export function renderNextQuest({ initialGrade, onReview, onRestart }) {
   const data = content.nextQuest;
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
-  let selectedGrade = null;
+  let selectedGrade = initialGrade ?? null;
 
   function update() {
     container.innerHTML = '';

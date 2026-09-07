@@ -2,6 +2,8 @@
 
 import { loadState, saveState, resetState, hasProgress } from './state.js';
 import { content } from '../data/content.js';
+import { renderGradeSelect } from './grade-select.js';
+import { renderSurvey } from './survey.js';
 import { renderStage1Know } from './stage1-know.js';
 import { renderStage2See } from './stage2-see.js';
 import { renderStage3Think } from './stage3-think.js';
@@ -28,6 +30,46 @@ function render() {
   app.innerHTML = '';
   if (currentScreen === 'top') {
     app.appendChild(renderTopScreen());
+  } else if (currentScreen === 'grade-select') {
+    app.appendChild(
+      renderGradeSelect({
+        initialGrade: state.grade,
+        onComplete: (grade) => {
+          state.grade = grade;
+          saveState(state);
+          navigateTo('pre-survey');
+        },
+      })
+    );
+  } else if (currentScreen === 'pre-survey') {
+    app.appendChild(
+      renderSurvey({
+        variant: 'pre',
+        initialAnswers: state.preSurvey,
+        onSave: (answers) => {
+          state.preSurvey = answers;
+          saveState(state);
+        },
+        onComplete: () => {
+          navigateTo('stage1-know');
+        },
+      })
+    );
+  } else if (currentScreen === 'post-survey') {
+    app.appendChild(
+      renderSurvey({
+        variant: 'post',
+        initialAnswers: state.postSurvey,
+        previousAnswers: state.preSurvey,
+        onSave: (answers) => {
+          state.postSurvey = answers;
+          saveState(state);
+        },
+        onComplete: () => {
+          navigateTo('status');
+        },
+      })
+    );
   } else if (currentScreen === 'stage1-know') {
     app.appendChild(
       renderStage1Know({
@@ -40,6 +82,7 @@ function render() {
   } else if (currentScreen === 'stage2-see') {
     app.appendChild(
       renderStage2See({
+        grade: state.grade,
         onComplete: () => {
           state.badges.see = true;
           navigateTo('stage3-think');
@@ -49,6 +92,7 @@ function render() {
   } else if (currentScreen === 'stage3-think') {
     app.appendChild(
       renderStage3Think({
+        grade: state.grade,
         onComplete: () => {
           state.badges.think = true;
           navigateTo('stage4-act');
@@ -58,6 +102,7 @@ function render() {
   } else if (currentScreen === 'stage4-act') {
     app.appendChild(
       renderStage4Act({
+        grade: state.grade,
         onComplete: () => {
           state.badges.act = true;
           navigateTo('complete');
@@ -68,7 +113,7 @@ function render() {
     app.appendChild(
       renderComplete({
         onComplete: () => {
-          navigateTo('status');
+          navigateTo('post-survey');
         },
       })
     );
@@ -88,12 +133,13 @@ function render() {
   } else if (currentScreen === 'next-quest') {
     app.appendChild(
       renderNextQuest({
+        initialGrade: state.grade,
         onReview: () => {
           navigateTo('complete');
         },
         onRestart: () => {
           state = resetState();
-          navigateTo('stage1-know');
+          navigateTo('grade-select');
         },
       })
     );
@@ -144,7 +190,7 @@ function renderTopScreen() {
     continueBtn.className = 'btn btn-primary';
     continueBtn.textContent = t.continueButton;
     continueBtn.addEventListener('click', () => {
-      navigateTo(state.resumeScreen || 'stage1-know');
+      navigateTo(state.resumeScreen || 'grade-select');
     });
     actions.appendChild(continueBtn);
 
@@ -165,7 +211,7 @@ function renderTopScreen() {
     startBtn.className = 'btn btn-primary';
     startBtn.textContent = t.startButton;
     startBtn.addEventListener('click', () => {
-      navigateTo('stage1-know');
+      navigateTo('grade-select');
     });
     actions.appendChild(startBtn);
   }

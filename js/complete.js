@@ -1,12 +1,13 @@
-// KGU DP QUEST - QUEST COMPLETE + DP解説（9〜10章）
+// KGU DP QUEST - QUEST COMPLETE + Reflect + DP解説（9〜10章、v0.2 3章）
 //
-// 「体験が先、DPという名前は後」の順番を壊さないよう、3ステップに分けて表示する。
-//   1. badges : 4バッジ＋QUEST COMPLETE!（DP・Diploma Policyの語は一切出さない）
-//   2. reveal : 「実は…Diploma Policy（DP）です」の開示文のみ
-//   3. table  : KNOW→DP1〜ACT→DP4の対応表
+// 「体験が先、DPという名前は後」の順番を壊さないよう、4ステップに分けて表示する。
+//   1. badges  : 4バッジ＋QUEST COMPLETE!（DP・Diploma Policyの語は一切出さない）
+//   2. reflect : 正式名称を明かす前に、使った力を学生自身の言葉で言語化させる（v0.2 3章）
+//   3. reveal  : 「実は…Diploma Policy（DP）です」の開示文のみ
+//   4. table   : Know→DP1〜Act→DP4の対応表
 // ステップ間には必ず学生の能動的なクリックを挟み、「明かされる」感覚を保つ。
 //
-// 途中のステップ（badges/reveal/table）はモジュール内ローカル変数のみで保持し、
+// 途中のステップ（badges/reflect/reveal/table）はモジュール内ローカル変数のみで保持し、
 // state.js（localStorage）には保存しない（画面に入り直すと常にbadgesから）。
 
 import { content } from '../data/content.js';
@@ -20,6 +21,8 @@ export function renderComplete({ onComplete }) {
   container.className = 'screen screen-stage';
 
   let step = 'badges';
+  const reflectSelected = new Set();
+  let reflectText = '';
 
   function update() {
     container.innerHTML = '';
@@ -41,6 +44,8 @@ export function renderComplete({ onComplete }) {
     switch (step) {
       case 'badges':
         return renderBadgesView();
+      case 'reflect':
+        return renderReflectView();
       case 'reveal':
         return renderRevealView();
       case 'table':
@@ -84,8 +89,97 @@ export function renderComplete({ onComplete }) {
     nextBtn.type = 'button';
     nextBtn.className = 'btn btn-primary stage-next-btn';
     nextBtn.textContent = data.nextButton;
-    nextBtn.addEventListener('click', () => goToStep('reveal'));
+    nextBtn.addEventListener('click', () => goToStep('reflect'));
     wrap.appendChild(nextBtn);
+
+    return wrap;
+  }
+
+  function renderReflectView() {
+    const reflectData = data.reflect;
+    const wrap = document.createElement('div');
+    wrap.className = 'stage-inner';
+
+    const title = document.createElement('h2');
+    title.className = 'stage-mission-title';
+    title.textContent = reflectData.title;
+    wrap.appendChild(title);
+
+    const intro = document.createElement('div');
+    intro.className = 'briefing-box';
+    reflectData.intro.forEach((line) => {
+      const p = document.createElement('p');
+      p.textContent = line;
+      intro.appendChild(p);
+    });
+    wrap.appendChild(intro);
+
+    const selectLabel = document.createElement('p');
+    selectLabel.className = 'stage-question';
+    selectLabel.textContent = reflectData.selectLabel;
+    wrap.appendChild(selectLabel);
+
+    const choiceList = document.createElement('div');
+    choiceList.className = 'choice-list';
+    choiceList.setAttribute('role', 'group');
+    choiceList.setAttribute('aria-label', reflectData.selectLabel);
+
+    let submitBtnSlot;
+
+    function refreshSubmitButton() {
+      submitBtnSlot.innerHTML = '';
+      if (reflectSelected.size > 0) {
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'btn btn-primary stage-next-btn';
+        nextBtn.textContent = reflectData.nextButton;
+        nextBtn.addEventListener('click', () => goToStep('reveal'));
+        submitBtnSlot.appendChild(nextBtn);
+      }
+    }
+
+    reflectData.options.forEach((optionText) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.textContent = optionText;
+      btn.setAttribute('aria-pressed', String(reflectSelected.has(optionText)));
+      if (reflectSelected.has(optionText)) btn.classList.add('choice-selected');
+      btn.addEventListener('click', () => {
+        if (reflectSelected.has(optionText)) {
+          reflectSelected.delete(optionText);
+        } else {
+          reflectSelected.add(optionText);
+        }
+        btn.setAttribute('aria-pressed', String(reflectSelected.has(optionText)));
+        btn.classList.toggle('choice-selected');
+        refreshSubmitButton();
+      });
+      choiceList.appendChild(btn);
+    });
+    wrap.appendChild(choiceList);
+
+    const textLabel = document.createElement('label');
+    textLabel.className = 'assessment-legend';
+    textLabel.setAttribute('for', 'reflect-text');
+    textLabel.textContent = reflectData.textLabel;
+    wrap.appendChild(textLabel);
+
+    const textarea = document.createElement('textarea');
+    textarea.id = 'reflect-text';
+    textarea.className = 'survey-textarea';
+    textarea.rows = 3;
+    textarea.placeholder = reflectData.textPlaceholder;
+    textarea.value = reflectText;
+    textarea.addEventListener('input', () => {
+      reflectText = textarea.value;
+      refreshSubmitButton();
+    });
+    wrap.appendChild(textarea);
+
+    submitBtnSlot = document.createElement('div');
+    wrap.appendChild(submitBtnSlot);
+    refreshSubmitButton();
 
     return wrap;
   }

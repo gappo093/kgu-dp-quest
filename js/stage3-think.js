@@ -11,10 +11,11 @@
 // state.js（localStorage）には保存しない（ステージに入り直すと常にSTEP1から）。
 
 import { content } from '../data/content.js';
+import { depthTierForGrade } from './grade-depth.js';
 
 const SENSOR_ALERT_SVG = `
 <svg viewBox="0 0 120 80" role="img" aria-labelledby="sensorAlertTitle">
-  <title id="sensorAlertTitle">GNSSセンサーが橋の変位10mmを検知したことを示すアイコン。</title>
+  <title id="sensorAlertTitle">斜面の傾斜計が異常な変位を検知したことを示すアイコン。</title>
   <circle cx="60" cy="28" r="13" fill="none" stroke="#3aa0ff" stroke-width="3" />
   <circle cx="60" cy="28" r="4.5" fill="#3aa0ff" />
   <path d="M60 41 L60 58" stroke="#3aa0ff" stroke-width="3" />
@@ -22,14 +23,20 @@ const SENSOR_ALERT_SVG = `
   <path d="M38 16 Q60 0 82 16" stroke="#ff8a3d" stroke-width="2.4" fill="none" stroke-dasharray="4 4" />
 </svg>`;
 
-export function renderStage3Think({ onComplete }) {
+export function renderStage3Think({ grade, onComplete }) {
   const data = content.stage3;
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
+  // 学年別の判断深度（v0.2 5章）：1年は確認必須の情報カード枚数を減らし、
+  // 4年は最後に説明を求める。2〜3年・未選択（3年相当が既定）は現行の完全版のまま。
+  const tier = depthTierForGrade(grade);
+  const requiredCardCount = tier === 'basic' ? data.step2BasicRequiredCount : data.infoCards.length;
+
   let step = 'step1';
   let step1Index = null;
   let step3Index = null;
+  let explainText = '';
   const viewedState = data.infoCards.map(() => false);
 
   function update() {
@@ -47,6 +54,8 @@ export function renderStage3Think({ onComplete }) {
         return renderStep3View({ showClosing: false });
       case 'step3-closing':
         return renderStep3View({ showClosing: true });
+      case 'explain':
+        return renderExplainView();
       case 'badge':
         return renderBadgeView();
       default:
@@ -159,7 +168,7 @@ export function renderStage3Think({ onComplete }) {
 
     const lead = document.createElement('p');
     lead.className = 'stage-question';
-    lead.textContent = data.step2Lead;
+    lead.textContent = tier === 'basic' ? data.step2LeadBasic : data.step2Lead;
     wrap.appendChild(lead);
 
     const cardList = document.createElement('div');
@@ -179,7 +188,7 @@ export function renderStage3Think({ onComplete }) {
       progress.textContent = `${viewedCount} / ${data.infoCards.length} 枚を確認済み`;
 
       nextBtnSlot.innerHTML = '';
-      if (viewedCount === data.infoCards.length) {
+      if (viewedCount >= requiredCardCount) {
         const nextBtn = document.createElement('button');
         nextBtn.type = 'button';
         nextBtn.className = 'btn btn-primary';
@@ -275,11 +284,62 @@ export function renderStage3Think({ onComplete }) {
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.step3NextButton;
       nextBtn.addEventListener('click', () => {
-        step = 'badge';
+        step = tier === 'advanced' ? 'explain' : 'badge';
         update();
       });
       wrap.appendChild(nextBtn);
     }
+
+    return wrap;
+  }
+
+  function renderExplainView() {
+    const wrap = document.createElement('div');
+    wrap.className = 'stage-inner';
+    const explainData = data.advancedExplain;
+
+    const missionTitle = document.createElement('h2');
+    missionTitle.className = 'stage-mission-title';
+    missionTitle.textContent = data.missionTitle;
+    wrap.appendChild(missionTitle);
+
+    const label = document.createElement('label');
+    label.className = 'assessment-legend';
+    label.setAttribute('for', 'stage3-explain-text');
+    label.textContent = explainData.label;
+    wrap.appendChild(label);
+
+    const textarea = document.createElement('textarea');
+    textarea.id = 'stage3-explain-text';
+    textarea.className = 'survey-textarea';
+    textarea.rows = 3;
+    textarea.placeholder = explainData.placeholder;
+    textarea.value = explainText;
+    wrap.appendChild(textarea);
+
+    const btnSlot = document.createElement('div');
+    wrap.appendChild(btnSlot);
+
+    function refreshButton() {
+      btnSlot.innerHTML = '';
+      if (explainText.trim().length > 0) {
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = 'btn btn-primary stage-next-btn';
+        nextBtn.textContent = explainData.button;
+        nextBtn.addEventListener('click', () => {
+          step = 'badge';
+          update();
+        });
+        btnSlot.appendChild(nextBtn);
+      }
+    }
+
+    textarea.addEventListener('input', () => {
+      explainText = textarea.value;
+      refreshButton();
+    });
+    refreshButton();
 
     return wrap;
   }
@@ -296,7 +356,7 @@ export function renderStage3Think({ onComplete }) {
 
     const badgeLabel = document.createElement('p');
     badgeLabel.className = 'badge-label';
-    badgeLabel.textContent = 'THINK';
+    badgeLabel.textContent = data.badgeLabel;
     wrap.appendChild(badgeLabel);
 
     const title = document.createElement('h2');

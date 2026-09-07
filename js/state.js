@@ -3,12 +3,23 @@
 // 進捗はブラウザのlocalStorageにのみ保存する（13章：サーバー不要・個人情報を収集しない）。
 
 const STORAGE_KEY = 'kguDpQuestState';
-const STATE_VERSION = 1;
+const STATE_VERSION = 2;
+
+function getDefaultSurveyAnswers() {
+  return {
+    awareness: null,
+    understanding: '',
+    application: null,
+    selfAwareness: null,
+  };
+}
 
 function getDefaultState() {
   return {
     version: STATE_VERSION,
     resumeScreen: null,
+    // 学年（1〜4）。オープンキャンパス参加者等、学年を持たない利用者はnullのまま進める（v0.2 5.3）。
+    grade: null,
     badges: {
       know: false,
       see: false,
@@ -22,6 +33,9 @@ function getDefaultState() {
       think: null,
       act: null,
     },
+    // DP理解度Pre/Postアンケート（v0.2 6章）。selfAssessmentと同様、後から見返す価値があるため永続化する。
+    preSurvey: getDefaultSurveyAnswers(),
+    postSurvey: getDefaultSurveyAnswers(),
   };
 }
 

@@ -152,7 +152,7 @@ export function renderStage1Know({ onComplete }) {
 
     const badgeLabel = document.createElement('p');
     badgeLabel.className = 'badge-label';
-    badgeLabel.textContent = 'KNOW';
+    badgeLabel.textContent = data.badgeLabel;
     wrap.appendChild(badgeLabel);
 
     const title = document.createElement('h2');

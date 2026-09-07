@@ -12,11 +12,17 @@
 // state.js（localStorage）には保存しない（ステージに入り直すと常にphaseA-questionから）。
 
 import { content } from '../data/content.js';
+import { depthTierForGrade } from './grade-depth.js';
 
-export function renderStage4Act({ onComplete }) {
+export function renderStage4Act({ grade, onComplete }) {
   const data = content.stage4;
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
+
+  // 学年別の判断深度（v0.2 5章）：1年はフェーズCの選択肢を絞り、4年は最後に説明を求める。
+  // 2〜3年・未選択（3年相当が既定）は現行の完全版のまま。フェーズA・Bの必須NPC相談への
+  // 収束構造（CLAUDE.md 2.4）自体は学年によらず変更しない。
+  const tier = depthTierForGrade(grade);
 
   let currentNodeId = data.startNode;
   const consulted = new Set();
@@ -24,6 +30,7 @@ export function renderStage4Act({ onComplete }) {
   // decision-neutral（フェーズC）専用のサブ状態。SEE/THINKと同じ「選択→クロージング」構成。
   let phaseCStep = 'choosing';
   let phaseCIndex = null;
+  let explainText = '';
 
   function goToNode(nodeId) {
     currentNodeId = nodeId;
@@ -205,6 +212,51 @@ export function renderStage4Act({ onComplete }) {
     wrap.className = 'stage-inner';
     wrap.appendChild(renderMissionTitle());
 
+    const choices = tier === 'basic' ? node.choices.slice(0, 2) : node.choices;
+
+    if (phaseCStep === 'explain') {
+      const explainData = data.advancedExplain;
+
+      const label = document.createElement('label');
+      label.className = 'assessment-legend';
+      label.setAttribute('for', 'stage4-explain-text');
+      label.textContent = explainData.label;
+      wrap.appendChild(label);
+
+      const textarea = document.createElement('textarea');
+      textarea.id = 'stage4-explain-text';
+      textarea.className = 'survey-textarea';
+      textarea.rows = 3;
+      textarea.placeholder = explainData.placeholder;
+      textarea.value = explainText;
+      wrap.appendChild(textarea);
+
+      const btnSlot = document.createElement('div');
+      wrap.appendChild(btnSlot);
+
+      function refreshButton() {
+        btnSlot.innerHTML = '';
+        if (explainText.trim().length > 0) {
+          const nextBtn = document.createElement('button');
+          nextBtn.type = 'button';
+          nextBtn.className = 'btn btn-primary stage-next-btn';
+          nextBtn.textContent = explainData.button;
+          nextBtn.addEventListener('click', () => {
+            goToNode(node.outcome);
+          });
+          btnSlot.appendChild(nextBtn);
+        }
+      }
+
+      textarea.addEventListener('input', () => {
+        explainText = textarea.value;
+        refreshButton();
+      });
+      refreshButton();
+
+      return wrap;
+    }
+
     const questionText = document.createElement('p');
     questionText.className = 'stage-question';
     questionText.textContent = node.question;
@@ -224,7 +276,7 @@ export function renderStage4Act({ onComplete }) {
 
       wrap.appendChild(
         renderChoiceList({
-          choices: node.choices,
+          choices,
           selectedIndex: null,
           disabled: false,
           onSelect: (idx) => {
@@ -238,7 +290,7 @@ export function renderStage4Act({ onComplete }) {
     } else {
       wrap.appendChild(
         renderChoiceList({
-          choices: node.choices,
+          choices,
           selectedIndex: phaseCIndex,
           disabled: true,
           onSelect: () => {},
@@ -256,7 +308,13 @@ export function renderStage4Act({ onComplete }) {
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.nextButton;
       nextBtn.addEventListener('click', () => {
-        goToNode(node.outcome);
+        if (tier === 'advanced') {
+          phaseCStep = 'explain';
+          update();
+          focusNextButton();
+        } else {
+          goToNode(node.outcome);
+        }
       });
       wrap.appendChild(nextBtn);
     }
@@ -276,7 +334,7 @@ export function renderStage4Act({ onComplete }) {
 
     const badgeLabel = document.createElement('p');
     badgeLabel.className = 'badge-label';
-    badgeLabel.textContent = 'ACT';
+    badgeLabel.textContent = data.badgeLabel;
     wrap.appendChild(badgeLabel);
 
     const title = document.createElement('h2');
