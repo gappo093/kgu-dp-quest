@@ -254,11 +254,19 @@ export function renderStage4Act({ grade, onComplete }) {
       );
 
       const consultedResidents = Boolean(node.optionalContact) && consulted.has(node.optionalContact.character);
+      const choseRiskyOption = Boolean(node.choices[phaseCIndex] && node.choices[phaseCIndex].risky);
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent =
-        tier === 'advanced'
+      // クロージング文は3パターン（spec doc 12.3）：
+      //   1. 通常の選択：相談済みかどうかで2パターン（学年advancedはさらに深掘り文言）
+      //   2. 「安全だとだけ伝える」を選んだ場合：実際の失敗パターンを伝える
+      //      （相談済みなら、声を活かさなかった矛盾にも触れる）。学年によらず適用。
+      closing.textContent = choseRiskyOption
+        ? consultedResidents
+          ? node.closingUnsafeReassuranceConsulted
+          : node.closingUnsafeReassurance
+        : tier === 'advanced'
           ? data.phaseCClosingAdvanced
           : consultedResidents
             ? node.closingConsulted

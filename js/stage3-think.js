@@ -37,7 +37,9 @@ export function renderStage3Think({ grade, onComplete }) {
   let step = 'step1';
   let step1Index = null;
   let step3Index = null;
+  let reportIndex = null;
   const viewedState = data.infoCards.map(() => false);
+  const reportChoices = tier === 'basic' ? data.reportChoices.slice(0, 2) : data.reportChoices;
 
   function update() {
     container.innerHTML = '';
@@ -54,6 +56,10 @@ export function renderStage3Think({ grade, onComplete }) {
         return renderStep3View({ showClosing: false });
       case 'step3-closing':
         return renderStep3View({ showClosing: true });
+      case 'report':
+        return renderReportView({ showClosing: false });
+      case 'report-closing':
+        return renderReportView({ showClosing: true });
       case 'badge':
         return renderBadgeView();
       default:
@@ -82,12 +88,12 @@ export function renderStage3Think({ grade, onComplete }) {
     return alertBox;
   }
 
-  function renderChoiceList({ selectedIndex, disabled, onSelect }) {
+  function renderChoiceList({ choices, selectedIndex, disabled, onSelect }) {
     const choiceList = document.createElement('div');
     choiceList.className = 'choice-list';
     choiceList.setAttribute('role', 'group');
 
-    data.causeChoices.forEach((choiceText, idx) => {
+    choices.forEach((choiceText, idx) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'choice-btn';
@@ -130,6 +136,7 @@ export function renderStage3Think({ grade, onComplete }) {
     const isSelected = step1Index !== null;
     wrap.appendChild(
       renderChoiceList({
+        choices: data.causeChoices,
         selectedIndex: step1Index,
         disabled: isSelected,
         onSelect: (idx) => {
@@ -259,6 +266,7 @@ export function renderStage3Think({ grade, onComplete }) {
 
     wrap.appendChild(
       renderChoiceList({
+        choices: data.causeChoices,
         selectedIndex: step3Index,
         disabled: showClosing,
         onSelect: (idx) => {
@@ -281,6 +289,58 @@ export function renderStage3Think({ grade, onComplete }) {
       nextBtn.type = 'button';
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.step3NextButton;
+      nextBtn.addEventListener('click', () => {
+        step = 'report';
+        update();
+      });
+      wrap.appendChild(nextBtn);
+    }
+
+    return wrap;
+  }
+
+  // 「他者への説明」ステップ（spec doc 12.2）。THINKの学習目的（原因を考え、
+  // 解決策を導き、他者に説明する）のうち「説明する」を体験させる。選択式のみ
+  // （CLAUDE.md 21.4：自由記述はReflectのみで扱う）。
+  function renderReportView({ showClosing }) {
+    const wrap = document.createElement('div');
+    wrap.className = 'stage-inner';
+
+    const missionTitle = document.createElement('h2');
+    missionTitle.className = 'stage-mission-title';
+    missionTitle.textContent = data.missionTitle;
+    wrap.appendChild(missionTitle);
+
+    const questionText = document.createElement('p');
+    questionText.className = 'stage-question';
+    questionText.textContent = data.reportQuestion;
+    wrap.appendChild(questionText);
+
+    wrap.appendChild(
+      renderChoiceList({
+        choices: reportChoices,
+        selectedIndex: reportIndex,
+        disabled: showClosing,
+        onSelect: (idx) => {
+          reportIndex = idx;
+          step = 'report-closing';
+          update();
+          focusNextButton();
+        },
+      })
+    );
+
+    if (showClosing) {
+      const closing = document.createElement('p');
+      closing.className = 'stage-feedback feedback-neutral';
+      closing.setAttribute('role', 'status');
+      closing.textContent = tier === 'advanced' ? data.reportClosingAdvanced : data.reportClosing;
+      wrap.appendChild(closing);
+
+      const nextBtn = document.createElement('button');
+      nextBtn.type = 'button';
+      nextBtn.className = 'btn btn-primary stage-next-btn';
+      nextBtn.textContent = data.reportNextButton;
       nextBtn.addEventListener('click', () => {
         step = 'badge';
         update();

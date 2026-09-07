@@ -220,11 +220,20 @@ export function renderComplete({ initialReflect, onReflectSave, onComplete }) {
     intro.textContent = data.dpTableIntro;
     wrap.appendChild(intro);
 
+    const dpImage = document.createElement('img');
+    dpImage.className = 'dp-official-image';
+    dpImage.src = data.dpImage.src;
+    dpImage.alt = data.dpImage.alt;
+    wrap.appendChild(dpImage);
+
     const table = document.createElement('div');
     table.className = 'dp-mapping-list';
     data.dpMapping.forEach((row) => {
       const item = document.createElement('div');
-      item.className = 'dp-mapping-row';
+      item.className = 'dp-mapping-card';
+
+      const header = document.createElement('div');
+      header.className = 'dp-mapping-row';
 
       const from = document.createElement('span');
       from.className = 'dp-mapping-from';
@@ -239,7 +248,14 @@ export function renderComplete({ initialReflect, onReflectSave, onComplete }) {
       to.className = 'dp-mapping-to';
       to.textContent = row.to;
 
-      item.append(from, arrow, to);
+      header.append(from, arrow, to);
+      item.appendChild(header);
+
+      const definitionText = document.createElement('p');
+      definitionText.className = 'dp-mapping-definition';
+      definitionText.textContent = row.definition;
+      item.appendChild(definitionText);
+
       table.appendChild(item);
     });
     wrap.appendChild(table);

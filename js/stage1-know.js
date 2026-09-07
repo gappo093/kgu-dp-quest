@@ -21,8 +21,21 @@ const BRIDGE_DIAGRAM_SVG = `
   <circle cx="205" cy="72" r="3.2" fill="#0c1830" />
 </svg>`;
 
+// 5分野から異なる3分野をランダムに選び、各分野のプール（2問）から1問ずつ
+// ランダム抽出する（spec doc 12.1）。呼び出すたびに毎回変わり、非永続。
+function pickRandomQuestions(questionBank) {
+  const categories = Object.keys(questionBank);
+  const shuffledCategories = [...categories].sort(() => Math.random() - 0.5);
+  const chosenCategories = shuffledCategories.slice(0, 3);
+  return chosenCategories.map((category) => {
+    const pool = questionBank[category];
+    return pool[Math.floor(Math.random() * pool.length)];
+  });
+}
+
 export function renderStage1Know({ onComplete }) {
   const data = content.stage1;
+  let questions = pickRandomQuestions(data.questionBank);
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
@@ -34,6 +47,8 @@ export function renderStage1Know({ onComplete }) {
   let resultStep = 'question';
 
   function resetQuiz() {
+    // 再挑戦時も分野・設問を選び直し、同じ3問の暗記だけで突破できないようにする。
+    questions = pickRandomQuestions(data.questionBank);
     questionIndex = 0;
     selectedIndex = null;
     showFeedback = false;
@@ -47,14 +62,14 @@ export function renderStage1Know({ onComplete }) {
   }
 
   function renderQuestionView() {
-    const q = data.questions[questionIndex];
+    const q = questions[questionIndex];
 
     const wrap = document.createElement('div');
     wrap.className = 'stage-inner';
 
     const progress = document.createElement('p');
     progress.className = 'stage-progress';
-    progress.textContent = `Q${questionIndex + 1} / ${data.questions.length}`;
+    progress.textContent = `Q${questionIndex + 1} / ${questions.length}`;
     wrap.appendChild(progress);
 
     const missionTitle = document.createElement('h2');
@@ -130,16 +145,16 @@ export function renderStage1Know({ onComplete }) {
         : `${data.incorrectFeedbackPrefix}${q.choices[q.correctIndex]}${data.incorrectFeedbackSuffix}`;
       wrap.appendChild(feedback);
 
-      const isLastQuestion = questionIndex === data.questions.length - 1;
+      const isLastQuestion = questionIndex === questions.length - 1;
       const nextBtn = document.createElement('button');
       nextBtn.type = 'button';
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = isLastQuestion ? data.resultButton : data.nextQuestionButton;
       nextBtn.addEventListener('click', () => {
         if (isLastQuestion) {
-          if (correctCount === data.questions.length) {
+          if (correctCount === questions.length) {
             resultStep = 'achieved';
-          } else if (correctCount === data.questions.length - 1) {
+          } else if (correctCount === questions.length - 1) {
             resultStep = 'almost';
           } else {
             resultStep = 'notAchieved';
