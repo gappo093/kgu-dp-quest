@@ -25,15 +25,15 @@ export function renderStage2See({ grade, onComplete }) {
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
-  // 学年別の判断深度（v0.2 5章）：1年は選択肢を絞り、4年は最後に説明を求める。
-  // 2〜3年・未選択（3年相当が既定）は現行の完全版のまま。
+  // 学年別の判断深度（v0.2 5章）：1年は選択肢を絞り、4年はクロージング文をより
+  // 踏み込んだ内容にする。2〜3年・未選択（3年相当が既定）は現行の標準版のまま。
+  // 往復構造（選択→視点提示→再選択）自体は学年によらず共通で、入力形式は変えない。
   const tier = depthTierForGrade(grade);
   const choices = tier === 'basic' ? data.choices.slice(0, 2) : data.choices;
 
   let step = 'intro';
   let round1Index = null;
   let round2Index = null;
-  let explainText = '';
 
   function update() {
     container.innerHTML = '';
@@ -62,8 +62,6 @@ export function renderStage2See({ grade, onComplete }) {
         return renderRound2View({ showClosing: false });
       case 'round2-feedback':
         return renderRound2View({ showClosing: true });
-      case 'round2-explain':
-        return renderExplainView();
       case 'badge':
         return renderBadgeView();
       default:
@@ -247,7 +245,7 @@ export function renderStage2See({ grade, onComplete }) {
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent = data.round2Closing;
+      closing.textContent = tier === 'advanced' ? data.round2ClosingAdvanced : data.round2Closing;
       wrap.appendChild(closing);
 
       const nextBtn = document.createElement('button');
@@ -255,62 +253,11 @@ export function renderStage2See({ grade, onComplete }) {
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.round2NextButton;
       nextBtn.addEventListener('click', () => {
-        step = tier === 'advanced' ? 'round2-explain' : 'badge';
+        step = 'badge';
         update();
       });
       wrap.appendChild(nextBtn);
     }
-
-    return wrap;
-  }
-
-  function renderExplainView() {
-    const wrap = document.createElement('div');
-    wrap.className = 'stage-inner';
-    const explainData = data.advancedExplain;
-
-    const missionTitle = document.createElement('h2');
-    missionTitle.className = 'stage-mission-title';
-    missionTitle.textContent = data.missionTitle;
-    wrap.appendChild(missionTitle);
-
-    const label = document.createElement('label');
-    label.className = 'assessment-legend';
-    label.setAttribute('for', 'stage2-explain-text');
-    label.textContent = explainData.label;
-    wrap.appendChild(label);
-
-    const textarea = document.createElement('textarea');
-    textarea.id = 'stage2-explain-text';
-    textarea.className = 'survey-textarea';
-    textarea.rows = 3;
-    textarea.placeholder = explainData.placeholder;
-    textarea.value = explainText;
-    wrap.appendChild(textarea);
-
-    const btnSlot = document.createElement('div');
-    wrap.appendChild(btnSlot);
-
-    function refreshButton() {
-      btnSlot.innerHTML = '';
-      if (explainText.trim().length > 0) {
-        const nextBtn = document.createElement('button');
-        nextBtn.type = 'button';
-        nextBtn.className = 'btn btn-primary stage-next-btn';
-        nextBtn.textContent = explainData.button;
-        nextBtn.addEventListener('click', () => {
-          step = 'badge';
-          update();
-        });
-        btnSlot.appendChild(nextBtn);
-      }
-    }
-
-    textarea.addEventListener('input', () => {
-      explainText = textarea.value;
-      refreshButton();
-    });
-    refreshButton();
 
     return wrap;
   }

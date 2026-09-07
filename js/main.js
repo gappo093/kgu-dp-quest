@@ -109,7 +109,11 @@ function render() {
         },
       })
     );
-  } else if (currentScreen === 'complete') {
+  } else if (currentScreen === 'complete' || currentScreen === 'complete-review') {
+    // 'complete'は初回のクリア直後（この後Post調査等の終盤フローへ進む）、
+    // 'complete-review'はYOUR NEXT QUESTの「QUESTを振り返る」からの再訪問
+    // （Post調査・MY DP STATUS・あなたの振り返りをやり直させず、直接戻す）。
+    const isReview = currentScreen === 'complete-review';
     app.appendChild(
       renderComplete({
         initialReflect: state.reflect,
@@ -118,7 +122,7 @@ function render() {
           saveState(state);
         },
         onComplete: () => {
-          navigateTo('post-survey');
+          navigateTo(isReview ? 'next-quest' : 'post-survey');
         },
       })
     );
@@ -151,7 +155,7 @@ function render() {
       renderNextQuest({
         initialGrade: state.grade,
         onReview: () => {
-          navigateTo('complete');
+          navigateTo('complete-review');
         },
         onRestart: () => {
           state = resetState();

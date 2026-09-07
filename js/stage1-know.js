@@ -29,11 +29,21 @@ export function renderStage1Know({ onComplete }) {
   let questionIndex = 0;
   let selectedIndex = null;
   let showFeedback = false;
-  let cleared = false;
+  let correctCount = 0;
+  // 'question' | 'achieved' | 'almost' | 'notAchieved'
+  let resultStep = 'question';
+
+  function resetQuiz() {
+    questionIndex = 0;
+    selectedIndex = null;
+    showFeedback = false;
+    correctCount = 0;
+    resultStep = 'question';
+  }
 
   function update() {
     container.innerHTML = '';
-    container.appendChild(cleared ? renderBadgeView() : renderQuestionView());
+    container.appendChild(resultStep === 'question' ? renderQuestionView() : renderResultView());
   }
 
   function renderQuestionView() {
@@ -101,6 +111,7 @@ export function renderStage1Know({ onComplete }) {
         if (showFeedback) return;
         selectedIndex = idx;
         showFeedback = true;
+        if (idx === q.correctIndex) correctCount += 1;
         update();
         const nextBtn = container.querySelector('.stage-next-btn');
         if (nextBtn) nextBtn.focus();
@@ -126,7 +137,13 @@ export function renderStage1Know({ onComplete }) {
       nextBtn.textContent = isLastQuestion ? data.resultButton : data.nextQuestionButton;
       nextBtn.addEventListener('click', () => {
         if (isLastQuestion) {
-          cleared = true;
+          if (correctCount === data.questions.length) {
+            resultStep = 'achieved';
+          } else if (correctCount === data.questions.length - 1) {
+            resultStep = 'almost';
+          } else {
+            resultStep = 'notAchieved';
+          }
         } else {
           questionIndex += 1;
           selectedIndex = null;
@@ -140,7 +157,11 @@ export function renderStage1Know({ onComplete }) {
     return wrap;
   }
 
-  function renderBadgeView() {
+  function renderResultView() {
+    return resultStep === 'notAchieved' ? renderNotAchievedView() : renderAchievedView();
+  }
+
+  function renderAchievedView() {
     const wrap = document.createElement('div');
     wrap.className = 'stage-inner badge-inner';
 
@@ -160,6 +181,14 @@ export function renderStage1Know({ onComplete }) {
     title.textContent = data.badgeTitle;
     wrap.appendChild(title);
 
+    if (resultStep === 'almost') {
+      const almost = document.createElement('p');
+      almost.className = 'stage-feedback feedback-neutral';
+      almost.setAttribute('role', 'status');
+      almost.textContent = data.almostMessage;
+      wrap.appendChild(almost);
+    }
+
     const explain = document.createElement('div');
     explain.className = 'badge-explain';
     data.badgeExplain.forEach((line) => {
@@ -177,6 +206,37 @@ export function renderStage1Know({ onComplete }) {
       onComplete();
     });
     wrap.appendChild(nextBtn);
+
+    return wrap;
+  }
+
+  function renderNotAchievedView() {
+    const wrap = document.createElement('div');
+    wrap.className = 'stage-inner badge-inner';
+
+    const title = document.createElement('h2');
+    title.className = 'badge-title';
+    title.textContent = data.notAchievedTitle;
+    wrap.appendChild(title);
+
+    const explain = document.createElement('div');
+    explain.className = 'badge-explain';
+    data.notAchievedMessage.forEach((line) => {
+      const p = document.createElement('p');
+      p.textContent = line;
+      explain.appendChild(p);
+    });
+    wrap.appendChild(explain);
+
+    const retryBtn = document.createElement('button');
+    retryBtn.type = 'button';
+    retryBtn.className = 'btn btn-primary';
+    retryBtn.textContent = data.retryButton;
+    retryBtn.addEventListener('click', () => {
+      resetQuiz();
+      update();
+    });
+    wrap.appendChild(retryBtn);
 
     return wrap;
   }

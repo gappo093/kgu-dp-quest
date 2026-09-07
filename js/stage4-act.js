@@ -19,9 +19,9 @@ export function renderStage4Act({ grade, onComplete }) {
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
-  // 学年別の判断深度（v0.2 5章）：1年はフェーズCの選択肢を絞り、4年は最後に説明を求める。
-  // 2〜3年・未選択（3年相当が既定）は現行の完全版のまま。フェーズA・Bの必須NPC相談への
-  // 収束構造（CLAUDE.md 2.4）自体は学年によらず変更しない。
+  // 学年別の判断深度（v0.2 5章）：1年はフェーズCの選択肢を絞り、4年はクロージング文を
+  // より踏み込んだ内容にする。2〜3年・未選択（3年相当が既定）は現行の標準版のまま。
+  // フェーズA・Bの必須NPC相談への収束構造（CLAUDE.md 2.4）自体は学年によらず変更しない。
   const tier = depthTierForGrade(grade);
 
   let currentNodeId = data.startNode;
@@ -30,7 +30,6 @@ export function renderStage4Act({ grade, onComplete }) {
   // decision-neutral（フェーズC）専用のサブ状態。SEE/THINKと同じ「選択→クロージング」構成。
   let phaseCStep = 'choosing';
   let phaseCIndex = null;
-  let explainText = '';
 
   function goToNode(nodeId) {
     currentNodeId = nodeId;
@@ -214,49 +213,6 @@ export function renderStage4Act({ grade, onComplete }) {
 
     const choices = tier === 'basic' ? node.choices.slice(0, 2) : node.choices;
 
-    if (phaseCStep === 'explain') {
-      const explainData = data.advancedExplain;
-
-      const label = document.createElement('label');
-      label.className = 'assessment-legend';
-      label.setAttribute('for', 'stage4-explain-text');
-      label.textContent = explainData.label;
-      wrap.appendChild(label);
-
-      const textarea = document.createElement('textarea');
-      textarea.id = 'stage4-explain-text';
-      textarea.className = 'survey-textarea';
-      textarea.rows = 3;
-      textarea.placeholder = explainData.placeholder;
-      textarea.value = explainText;
-      wrap.appendChild(textarea);
-
-      const btnSlot = document.createElement('div');
-      wrap.appendChild(btnSlot);
-
-      function refreshButton() {
-        btnSlot.innerHTML = '';
-        if (explainText.trim().length > 0) {
-          const nextBtn = document.createElement('button');
-          nextBtn.type = 'button';
-          nextBtn.className = 'btn btn-primary stage-next-btn';
-          nextBtn.textContent = explainData.button;
-          nextBtn.addEventListener('click', () => {
-            goToNode(node.outcome);
-          });
-          btnSlot.appendChild(nextBtn);
-        }
-      }
-
-      textarea.addEventListener('input', () => {
-        explainText = textarea.value;
-        refreshButton();
-      });
-      refreshButton();
-
-      return wrap;
-    }
-
     const questionText = document.createElement('p');
     questionText.className = 'stage-question';
     questionText.textContent = node.question;
@@ -300,7 +256,7 @@ export function renderStage4Act({ grade, onComplete }) {
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent = node.closing;
+      closing.textContent = tier === 'advanced' ? data.phaseCClosingAdvanced : node.closing;
       wrap.appendChild(closing);
 
       const nextBtn = document.createElement('button');
@@ -308,13 +264,7 @@ export function renderStage4Act({ grade, onComplete }) {
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.nextButton;
       nextBtn.addEventListener('click', () => {
-        if (tier === 'advanced') {
-          phaseCStep = 'explain';
-          update();
-          focusNextButton();
-        } else {
-          goToNode(node.outcome);
-        }
+        goToNode(node.outcome);
       });
       wrap.appendChild(nextBtn);
     }

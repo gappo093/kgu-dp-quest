@@ -59,7 +59,8 @@ export const content = {
       ],
       q3: {
         name: '適用',
-        question: '複数の立場から社会課題を考えることは、次のうちどの学びに最も関係すると思いますか？',
+        question:
+          '複数の立場から社会課題を考えることは、次のうちどの学びに最も強く関係すると思いますか？最も当てはまるものを1つ選んでください。',
         choices: [
           '知識や技能を使って問題を解決すること',
           '異なる立場や背景を踏まえて物事を見ること',
@@ -76,7 +77,8 @@ export const content = {
       ],
       q3: {
         name: '適用',
-        question: '複数の立場から社会課題を考えることは、Know/See/Think/Actのどれと最も関係すると思いますか？',
+        question:
+          '複数の立場から社会課題を考えることは、Know/See/Think/Actのどれと最も強く関係すると思いますか？最も当てはまるものを1つ選んでください。',
         choices: ['Know', 'See', 'Think', 'Act'],
       },
       button: '次へ',
@@ -111,6 +113,11 @@ export const content = {
     incorrectFeedbackSuffix: '」',
     nextQuestionButton: '次の問題へ',
     resultButton: '結果を見る',
+    // 3問中の正解数に応じて結果を出し分ける。
+    //   3問正解 → badgeTitle/badgeExplainのみ（達成）
+    //   2問正解 → 上記に加えてalmostMessageを表示（達成、励ましを添える）
+    //   0〜1問正解 → notAchievedTitle/notAchievedMessageを表示し、バッジは保留（再挑戦を促す）
+    almostMessage: 'おしい！もう一歩で全問正解でした。',
     badgeLabel: 'Know',
     badgeTitle: 'Know ―『知る力』を達成しました',
     badgeExplain: [
@@ -118,6 +125,12 @@ export const content = {
       '大学では、専門分野を理解し、必要な知識や技能を身につけます。',
       'これが Know の力です。',
     ],
+    notAchievedTitle: 'まだ達成できませんでした',
+    notAchievedMessage: [
+      '知識を使って問題を解くのは、今日が初めての人も多いはず。',
+      'もう一度、3つの問題に挑戦してみましょう。',
+    ],
+    retryButton: 'もう一度挑戦する',
     nextButton: '次へ',
   },
 
@@ -162,12 +175,9 @@ export const content = {
     round2Lead: '別の視点も踏まえて、もう一度考えてみましょう。',
     round2Question: 'あなたなら、最終的にどうする？',
     round2Closing: '社会の問題には、一つの正解があるとは限りません。誰の立場に立つかによって、見え方は変わります。',
+    round2ClosingAdvanced:
+      '技術・安全・経済・地域の暮らしなど、複数の観点を同時に満たす解は存在しないことがほとんどです。判断する立場になったとき大切なのは、優先順位をつけた根拠を示すことと、それでも残るトレードオフを地域と共有し続ける姿勢です。',
     round2NextButton: '次へ',
-    advancedExplain: {
-      label: 'あなたの判断を、地域住民にどう説明しますか？理由も含めて書いてみましょう。',
-      placeholder: '自由に書いてください',
-      button: '次へ',
-    },
     badgeLabel: 'See',
     badgeTitle: 'See ―『みる力』を達成しました',
     badgeExplain: [
@@ -182,7 +192,7 @@ export const content = {
     missionTitle: 'MISSION 3：データから原因を突き止めろ',
     alertLines: [
       '臨海市郊外の住宅地・望洋台。',
-      '造成地の斜面に設置された傾斜計から、',
+      '造成地の斜面に設置された傾斜計（斜面の傾きの変化を測る機器）から、',
       '「斜面の傾きが昨日より大きく変化した」というデータが届きました。',
     ],
     step1Question: 'この変化の原因として、まず何が考えられるでしょうか？',
@@ -192,19 +202,19 @@ export const content = {
     infoCards: [
       {
         title: '降水量データ',
-        body: 'この2日間、臨海市では平年の3倍近い雨が降り続いています。大雨は地盤の中の水位を一時的に押し上げることがあります。',
+        body: 'この2日間、臨海市では平年の3倍近い雨が降り続いています。大雨は地盤の中の水位を一時的に押し上げ、傾斜計の値がわずかに変化することがあります。',
       },
       {
         title: '過去の変位記録',
-        body: 'この斜面では、過去にも大雨のたびに傾斜計がわずかな変化を記録し、雨が止むと元の値に戻ってきました。',
+        body: 'この斜面では、過去に同程度の大雨が降った際にも、同じように傾斜計の値が一時的に変化し、雨が止んで数日たつと元の値に戻るというパターンが繰り返し記録されています。',
       },
       {
         title: '周辺センサー',
-        body: '同じ地域にある別の斜面のセンサーでも、同じ時期にわずかな変化が観測されています。',
+        body: '同じ大雨の中、望洋台周辺の別の斜面に設置された、別メーカー・別個体のセンサーでも、同じ時期に同程度の変化が観測されています。1台の機器だけが故障してこれほど広い範囲で同じ動きになるとは考えにくいといえます。',
       },
       {
         title: '点検記録',
-        body: '直近の点検（3週間前）では、地割れや崩壊の兆候は確認されていません。次回の定期点検は来月に予定されています。',
+        body: '直近の点検（3週間前）に加え、今回の通報を受けての現地確認でも、地割れや地面の沈下といった、実際に斜面が崩れ始めている場合に見られる兆候は確認されていません。',
       },
     ],
     step2NextButton: 'もう一度判断する',
@@ -215,12 +225,9 @@ export const content = {
     step1AnswerReminderSuffix: '」',
     step3Question: 'この変化の原因として、あなたはどう判断しますか？',
     step3Closing: 'データと情報をもとに判断を下しました。次は、その判断を他の人に説明する番です。',
+    step3ClosingAdvanced:
+      'データだけで原因を断定するのは危険です。専門家は、複数の仮説を残したまま追加調査を提案したり、判断に残る不確実性そのものを関係者に伝えたりすることもあります。',
     step3NextButton: '次へ',
-    advancedExplain: {
-      label: 'あなたの判断を、どう説明しますか？理由も含めて書いてみましょう。',
-      placeholder: '自由に書いてください',
-      button: '次へ',
-    },
     badgeLabel: 'Think',
     badgeTitle: 'Think ―『考える力』を達成しました',
     badgeExplain: [
@@ -488,11 +495,8 @@ export const content = {
 
       badge: { type: 'badge' },
     },
-    advancedExplain: {
-      label: 'あなたの判断を、住民にどう伝えますか？理由も含めて書いてみましょう。',
-      placeholder: '自由に書いてください',
-      button: '次へ',
-    },
+    phaseCClosingAdvanced:
+      'ここまでの判断は、複数の専門家の意見を踏まえたものです。ただし、地域住民が本当に納得できるかどうかは、説明の仕方次第で大きく変わります。伝え方にも、技術と同じくらいの責任があります。',
     badgeLabel: 'Act',
     badgeTitle: 'Act ―『働きかける力』を達成しました',
     badgeExplain: [

@@ -29,14 +29,14 @@ export function renderStage3Think({ grade, onComplete }) {
   container.className = 'screen screen-stage';
 
   // 学年別の判断深度（v0.2 5章）：1年は確認必須の情報カード枚数を減らし、
-  // 4年は最後に説明を求める。2〜3年・未選択（3年相当が既定）は現行の完全版のまま。
+  // 4年はクロージング文をより踏み込んだ内容にする。2〜3年・未選択（3年相当が既定）は
+  // 現行の標準版のまま。STEP3は正誤をつけない選択式のままにし、入力形式は変えない。
   const tier = depthTierForGrade(grade);
   const requiredCardCount = tier === 'basic' ? data.step2BasicRequiredCount : data.infoCards.length;
 
   let step = 'step1';
   let step1Index = null;
   let step3Index = null;
-  let explainText = '';
   const viewedState = data.infoCards.map(() => false);
 
   function update() {
@@ -54,8 +54,6 @@ export function renderStage3Think({ grade, onComplete }) {
         return renderStep3View({ showClosing: false });
       case 'step3-closing':
         return renderStep3View({ showClosing: true });
-      case 'explain':
-        return renderExplainView();
       case 'badge':
         return renderBadgeView();
       default:
@@ -276,7 +274,7 @@ export function renderStage3Think({ grade, onComplete }) {
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent = data.step3Closing;
+      closing.textContent = tier === 'advanced' ? data.step3ClosingAdvanced : data.step3Closing;
       wrap.appendChild(closing);
 
       const nextBtn = document.createElement('button');
@@ -284,62 +282,11 @@ export function renderStage3Think({ grade, onComplete }) {
       nextBtn.className = 'btn btn-primary stage-next-btn';
       nextBtn.textContent = data.step3NextButton;
       nextBtn.addEventListener('click', () => {
-        step = tier === 'advanced' ? 'explain' : 'badge';
+        step = 'badge';
         update();
       });
       wrap.appendChild(nextBtn);
     }
-
-    return wrap;
-  }
-
-  function renderExplainView() {
-    const wrap = document.createElement('div');
-    wrap.className = 'stage-inner';
-    const explainData = data.advancedExplain;
-
-    const missionTitle = document.createElement('h2');
-    missionTitle.className = 'stage-mission-title';
-    missionTitle.textContent = data.missionTitle;
-    wrap.appendChild(missionTitle);
-
-    const label = document.createElement('label');
-    label.className = 'assessment-legend';
-    label.setAttribute('for', 'stage3-explain-text');
-    label.textContent = explainData.label;
-    wrap.appendChild(label);
-
-    const textarea = document.createElement('textarea');
-    textarea.id = 'stage3-explain-text';
-    textarea.className = 'survey-textarea';
-    textarea.rows = 3;
-    textarea.placeholder = explainData.placeholder;
-    textarea.value = explainText;
-    wrap.appendChild(textarea);
-
-    const btnSlot = document.createElement('div');
-    wrap.appendChild(btnSlot);
-
-    function refreshButton() {
-      btnSlot.innerHTML = '';
-      if (explainText.trim().length > 0) {
-        const nextBtn = document.createElement('button');
-        nextBtn.type = 'button';
-        nextBtn.className = 'btn btn-primary stage-next-btn';
-        nextBtn.textContent = explainData.button;
-        nextBtn.addEventListener('click', () => {
-          step = 'badge';
-          update();
-        });
-        btnSlot.appendChild(nextBtn);
-      }
-    }
-
-    textarea.addEventListener('input', () => {
-      explainText = textarea.value;
-      refreshButton();
-    });
-    refreshButton();
 
     return wrap;
   }
