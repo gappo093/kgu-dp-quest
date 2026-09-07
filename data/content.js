@@ -80,10 +80,6 @@ export const content = {
         choices: ['Know', 'See', 'Think', 'Act'],
       },
       button: '次へ',
-      compareTitle: '最初の回答と、今の回答を比べてみましょう',
-      preLabel: '最初の回答',
-      postLabel: '今の回答',
-      compareButton: '次へ',
     },
   },
 
@@ -239,15 +235,15 @@ export const content = {
     missionTitle: 'FINAL MISSION：災害発生！',
     briefingLines: [
       '大規模な地震が発生しました。',
-      '臨海市内の複数の橋梁で被害が報告されています。青葉橋も例外ではありません。',
+      '臨海市内では、橋・道路・斜面・堤防など、複数の場所で被害が報告されています。',
       'しかし、技術者・点検車両・予算・時間は限られています。',
     ],
     characters: {
       contractor: { name: '建設会社', role: '点検車両や技術者、応急対応の人手を持つ。' },
-      researcher: { name: '大学研究者', role: '構造の専門的な診断ができる。' },
+      researcher: { name: '大学研究者', role: '構造・地盤の専門的な診断ができる。' },
       fire: { name: '消防', role: '救助や周辺の安全確保が専門。' },
       police: { name: '警察', role: '交通規制や避難誘導が専門。' },
-      residents: { name: '地域住民', role: '橋を日常的に利用し、不安や要望を持つ。' },
+      residents: { name: '地域住民', role: '臨海市の暮らしの中で、不安や要望を持つ。' },
     },
     contactNextButton: '次へ',
     recapTitle: '今回、協力してくれた人たち',
@@ -255,75 +251,99 @@ export const content = {
     nodes: {
       'phaseA-question': {
         type: 'decision',
-        question: 'どの橋から点検する？',
+        question: '地震により、臨海市内では複数の場所で被害が報告されています。どこから対応する？',
         choices: [
-          { label: '港北橋（最も被害が大きそうな橋）', outcome: 'phaseA-blocked-a' },
-          { label: '旭橋（最も利用者が多い橋）', outcome: 'phaseA-blocked-b' },
-          { label: '青葉橋（過去に老朽化が指摘されていた橋）', outcome: 'phaseA-blocked-c' },
-          { label: '少しずつ全ての橋を点検する', outcome: 'phaseA-blocked-d' },
+          { label: '青葉橋（橋梁の損傷）', outcome: 'phaseA-blocked-bridge' },
+          { label: '望洋台の斜面（土砂崩れの危険）', outcome: 'phaseA-blocked-slope' },
+          { label: '臨海川の堤防（損傷）', outcome: 'phaseA-blocked-levee' },
+          { label: '市街地の道路（陥没）', outcome: 'phaseA-blocked-road' },
         ],
       },
-      'phaseA-blocked-a': {
-        type: 'blocked',
-        message:
-          '被害が大きい港北橋ほど詳しい調査に時間がかかります。今の人員と車両だけでは、あなた一人で点検を終えられません。',
-        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact' },
-      },
-      'phaseA-blocked-b': {
-        type: 'blocked',
-        message:
-          '利用者が多い旭橋を優先するのは合理的な考え方です。ただし点検車両が1台しかなく、あなた一人では他の橋の点検が手つかずになります。',
-        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact' },
-      },
-      'phaseA-blocked-c': {
+      'phaseA-blocked-bridge': {
         type: 'blocked',
         message:
           '老朽化が指摘されていた青葉橋は特に注意が必要です。ただし、これまでの老朽化の経緯や過去の点検記録は、実際に工事や点検を担当してきた業者でなければ詳しく把握できません。あなた一人の手元にある資料だけでは、経緯をたどりきれません。',
-        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact' },
+        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact-bridge' },
       },
-      'phaseA-blocked-d': {
+      'phaseA-blocked-slope': {
         type: 'blocked',
-        message: '限られた時間と人員ですべての橋を回ろうとすると、どの橋も十分な点検ができません。',
-        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact' },
+        message:
+          '地震の揺れで、望洋台の斜面に新たな亀裂が見つかったという通報が入っています。土砂災害の危険度を正しく評価するには、地質データや専門的な調査機材を持つ業者の協力が必要です。あなた一人の判断では、危険度を判断できません。',
+        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact-slope' },
       },
-      'phaseA-contact': {
+      'phaseA-blocked-levee': {
+        type: 'blocked',
+        message:
+          '地震の揺れで、臨海川の堤防の一部にひび割れが見つかったという通報が入っています。堤防の強度を正しく評価するには、専門の技術者による詳しい調査が必要です。あなた一人の判断では、決壊の危険度を判断できません。',
+        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact-levee' },
+      },
+      'phaseA-blocked-road': {
+        type: 'blocked',
+        message:
+          '市街地の道路では、陥没が複数の場所で報告されています。少しずつ全ての場所を自分だけで回ろうとすると、どこも十分な調査ができません。効率よく調べるには、複数の班で動ける業者の協力が必要です。',
+        contact: { character: 'contractor', label: '建設会社に相談する', outcome: 'phaseA-contact-road' },
+      },
+      'phaseA-contact-bridge': {
         type: 'contact',
         character: 'contractor',
         dialogue: [
           '「うちから点検車両と技術者を2班出せます。」',
           '「青葉橋はうちが過去に点検を担当していたので、老朽化の経緯や記録も残っていますよ。」',
-          '「これで複数の橋を同時に、経緯を踏まえて点検できますね。」',
+          '「これで経緯を踏まえて点検できますね。」',
         ],
-        outcome: 'phaseB-question',
+        outcome: 'phaseB-question-bridge',
+      },
+      'phaseA-contact-slope': {
+        type: 'contact',
+        character: 'contractor',
+        dialogue: [
+          '「望洋台なら、うちの地盤調査チームを向かわせられます。」',
+          '「以前、傾斜計のデータも一緒に確認していたので、変化の経緯もすぐに分かるはずです。」',
+        ],
+        outcome: 'phaseB-question-slope',
+      },
+      'phaseA-contact-levee': {
+        type: 'contact',
+        character: 'contractor',
+        dialogue: ['「堤防の点検チームを向かわせます。」', '「以前の点検記録も踏まえて、状況を確認しますね。」'],
+        outcome: 'phaseB-question-levee',
+      },
+      'phaseA-contact-road': {
+        type: 'contact',
+        character: 'contractor',
+        dialogue: [
+          '「道路の陥没箇所を調べる班を、複数出せます。」',
+          '「危険度の高い場所から順に、手分けして対応しましょう。」',
+        ],
+        outcome: 'phaseB-question-road',
       },
 
-      'phaseB-question': {
+      'phaseB-question-bridge': {
         type: 'decision',
         question: '点検の結果、青葉橋の支承部に気になるひびが見つかりました。誰に協力を依頼する？',
         choices: [
-          { label: '自分の判断だけで安全性を決める', outcome: 'phaseB-blocked-self' },
-          { label: '消防に相談する', outcome: 'phaseB-blocked-fire' },
-          { label: '警察に相談する', outcome: 'phaseB-blocked-police' },
-          { label: '大学研究者に相談する', outcome: 'phaseB-contact' },
+          { label: '自分の判断だけで安全性を決める', outcome: 'phaseB-blocked-self-bridge' },
+          { label: '消防に相談する', outcome: 'phaseB-blocked-fire-bridge' },
+          { label: '警察に相談する', outcome: 'phaseB-blocked-police-bridge' },
+          { label: '大学研究者に相談する', outcome: 'phaseB-contact-bridge' },
         ],
       },
-      'phaseB-blocked-self': {
+      'phaseB-blocked-self-bridge': {
         type: 'blocked',
-        message:
-          '構造的な安全性の判断には専門的な知識が必要です。自治体職員だけの判断では、住民の安全を保証できません。',
-        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact' },
+        message: '構造的な安全性の判断には専門的な知識が必要です。自治体職員だけの判断では、住民の安全を保証できません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-bridge' },
       },
-      'phaseB-blocked-fire': {
+      'phaseB-blocked-fire-bridge': {
         type: 'blocked',
         message: '消防は救助や周辺の安全確保が専門で、構造そのものの診断はできません。',
-        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact' },
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-bridge' },
       },
-      'phaseB-blocked-police': {
+      'phaseB-blocked-police-bridge': {
         type: 'blocked',
         message: '警察は交通規制や避難誘導が専門で、構造そのものの診断はできません。',
-        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact' },
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-bridge' },
       },
-      'phaseB-contact': {
+      'phaseB-contact-bridge': {
         type: 'contact',
         character: 'researcher',
         dialogue: [
@@ -333,19 +353,124 @@ export const content = {
         outcome: 'phaseC-question',
       },
 
+      'phaseB-question-slope': {
+        type: 'decision',
+        question: '調査の結果、望洋台の斜面で地割れが拡大していることが分かりました。誰に協力を依頼する？',
+        choices: [
+          { label: '自分の判断だけで安全性を決める', outcome: 'phaseB-blocked-self-slope' },
+          { label: '消防に相談する', outcome: 'phaseB-blocked-fire-slope' },
+          { label: '警察に相談する', outcome: 'phaseB-blocked-police-slope' },
+          { label: '大学研究者に相談する', outcome: 'phaseB-contact-slope' },
+        ],
+      },
+      'phaseB-blocked-self-slope': {
+        type: 'blocked',
+        message: '地盤や斜面の安全性の判断には専門的な知識が必要です。自治体職員だけの判断では、住民の安全を保証できません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-slope' },
+      },
+      'phaseB-blocked-fire-slope': {
+        type: 'blocked',
+        message: '消防は救助や周辺の安全確保が専門で、地盤そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-slope' },
+      },
+      'phaseB-blocked-police-slope': {
+        type: 'blocked',
+        message: '警察は交通規制や避難誘導が専門で、地盤そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-slope' },
+      },
+      'phaseB-contact-slope': {
+        type: 'contact',
+        character: 'researcher',
+        dialogue: [
+          '「地割れの拡大を確認しました。すぐに崩れるような状態ではありませんが、」',
+          '「大雨が降る前に、周辺への立入を制限した方がよいでしょう。」',
+        ],
+        outcome: 'phaseC-question',
+      },
+
+      'phaseB-question-levee': {
+        type: 'decision',
+        question: '点検の結果、臨海川の堤防にひび割れと沈下が見つかりました。誰に協力を依頼する？',
+        choices: [
+          { label: '自分の判断だけで安全性を決める', outcome: 'phaseB-blocked-self-levee' },
+          { label: '消防に相談する', outcome: 'phaseB-blocked-fire-levee' },
+          { label: '警察に相談する', outcome: 'phaseB-blocked-police-levee' },
+          { label: '大学研究者に相談する', outcome: 'phaseB-contact-levee' },
+        ],
+      },
+      'phaseB-blocked-self-levee': {
+        type: 'blocked',
+        message: '堤防の安全性の判断には専門的な知識が必要です。自治体職員だけの判断では、住民の安全を保証できません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-levee' },
+      },
+      'phaseB-blocked-fire-levee': {
+        type: 'blocked',
+        message: '消防は救助や周辺の安全確保が専門で、堤防そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-levee' },
+      },
+      'phaseB-blocked-police-levee': {
+        type: 'blocked',
+        message: '警察は交通規制や避難誘導が専門で、堤防そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-levee' },
+      },
+      'phaseB-contact-levee': {
+        type: 'contact',
+        character: 'researcher',
+        dialogue: [
+          '「ひび割れと沈下を確認しました。すぐに決壊するような状態ではありませんが、」',
+          '「大雨が続くと危険性が高まります。早めの補強が必要です。」',
+        ],
+        outcome: 'phaseC-question',
+      },
+
+      'phaseB-question-road': {
+        type: 'decision',
+        question: '点検の結果、通学路にもなっている道路で大きな陥没が見つかりました。誰に協力を依頼する？',
+        choices: [
+          { label: '自分の判断だけで安全性を決める', outcome: 'phaseB-blocked-self-road' },
+          { label: '消防に相談する', outcome: 'phaseB-blocked-fire-road' },
+          { label: '警察に相談する', outcome: 'phaseB-blocked-police-road' },
+          { label: '大学研究者に相談する', outcome: 'phaseB-contact-road' },
+        ],
+      },
+      'phaseB-blocked-self-road': {
+        type: 'blocked',
+        message: '路面や地盤の安全性の判断には専門的な知識が必要です。自治体職員だけの判断では、住民の安全を保証できません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-road' },
+      },
+      'phaseB-blocked-fire-road': {
+        type: 'blocked',
+        message: '消防は救助や周辺の安全確保が専門で、路面そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-road' },
+      },
+      'phaseB-blocked-police-road': {
+        type: 'blocked',
+        message: '警察は交通規制や避難誘導が専門で、路面そのものの診断はできません。',
+        contact: { character: 'researcher', label: '大学研究者に相談する', outcome: 'phaseB-contact-road' },
+      },
+      'phaseB-contact-road': {
+        type: 'contact',
+        character: 'researcher',
+        dialogue: [
+          '「陥没の状況を確認しました。すぐに道路が崩れるような状態ではありませんが、」',
+          '「通行を制限した上での補修が必要です。」',
+        ],
+        outcome: 'phaseC-question',
+      },
+
       'phaseC-contact-residents': {
         type: 'contact',
         character: 'residents',
         dialogue: [
-          '「毎日この橋を子どもが通学に使っているんです。」',
-          '「臨海川の堤防のそばで農業をしている方も、川の増水のたびに心配していましたよ。」',
-          '「通れなくなるなら、早めに教えてほしいです。」',
+          '「毎日ここを子どもが通学に使っているんです。」',
+          '「臨海川の堤防のそばで農業をしている方も、増水のたびに心配していましたよ。」',
+          '「使えなくなるなら、早めに教えてほしいです。」',
         ],
         outcome: 'phaseC-question',
       },
       'phaseC-question': {
         type: 'decision-neutral',
-        question: '青葉橋の住民にはどのように説明する？',
+        question: '地域の住民にはどのように説明する？',
         optionalContact: {
           character: 'residents',
           label: '先に地域住民の声を聞く',
@@ -432,6 +557,19 @@ export const content = {
     resultsTitle: 'MY DP STATUS',
     levelPrefix: 'Lv.',
     disclaimer: 'これは能力の優劣を判定するテストではなく、自分の現在地を振り返るためのものです。',
+    nextButton: '次へ',
+  },
+
+  recap: {
+    title: 'あなたの振り返り',
+    disclaimer: 'これは評価ではなく、自分の変化を振り返るためのものです。',
+    surveySectionTitle: 'DP理解度チェックの変化',
+    preLabel: '最初の回答',
+    postLabel: '今の回答',
+    reflectSectionTitle: 'あなたが選んだ力',
+    reflectTextIntro: 'あなたはこう書きました：',
+    // complete.reflect.optionsと同じ並び順（Know→See→Think→Actの順）で対応させる。
+    reflectPowers: ['Know', 'See', 'Think', 'Act'],
     nextButton: '次へ',
   },
 

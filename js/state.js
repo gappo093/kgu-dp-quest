@@ -3,7 +3,7 @@
 // 進捗はブラウザのlocalStorageにのみ保存する（13章：サーバー不要・個人情報を収集しない）。
 
 const STORAGE_KEY = 'kguDpQuestState';
-const STATE_VERSION = 2;
+const STATE_VERSION = 3;
 
 function getDefaultSurveyAnswers() {
   return {
@@ -36,6 +36,11 @@ function getDefaultState() {
     // DP理解度Pre/Postアンケート（v0.2 6章）。selfAssessmentと同様、後から見返す価値があるため永続化する。
     preSurvey: getDefaultSurveyAnswers(),
     postSurvey: getDefaultSurveyAnswers(),
+    // Reflect（v0.2 3章）の回答。「あなたの振り返り」画面で再表示するため永続化する。
+    reflect: {
+      selected: [],
+      text: '',
+    },
   };
 }
 

@@ -10,6 +10,7 @@ import { renderStage3Think } from './stage3-think.js';
 import { renderStage4Act } from './stage4-act.js';
 import { renderComplete } from './complete.js';
 import { renderStatus, renderNextQuest } from './status.js';
+import { renderRecap } from './recap.js';
 
 const app = document.getElementById('app');
 let state = loadState();
@@ -60,7 +61,6 @@ function render() {
       renderSurvey({
         variant: 'post',
         initialAnswers: state.postSurvey,
-        previousAnswers: state.preSurvey,
         onSave: (answers) => {
           state.postSurvey = answers;
           saveState(state);
@@ -112,6 +112,11 @@ function render() {
   } else if (currentScreen === 'complete') {
     app.appendChild(
       renderComplete({
+        initialReflect: state.reflect,
+        onReflectSave: (reflect) => {
+          state.reflect = reflect;
+          saveState(state);
+        },
         onComplete: () => {
           navigateTo('post-survey');
         },
@@ -125,6 +130,17 @@ function render() {
           state.selfAssessment = values;
           saveState(state);
         },
+        onComplete: () => {
+          navigateTo('recap');
+        },
+      })
+    );
+  } else if (currentScreen === 'recap') {
+    app.appendChild(
+      renderRecap({
+        preSurvey: state.preSurvey,
+        postSurvey: state.postSurvey,
+        reflect: state.reflect,
         onComplete: () => {
           navigateTo('next-quest');
         },
@@ -202,7 +218,7 @@ function renderTopScreen() {
       const confirmed = window.confirm(t.restartConfirm);
       if (!confirmed) return;
       state = resetState();
-      navigateTo('stage1-know');
+      navigateTo('grade-select');
     });
     actions.appendChild(restartBtn);
   } else {

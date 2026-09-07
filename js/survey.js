@@ -5,28 +5,25 @@
 // 出題し、Postで初めて正式名称付きの選択肢を出す（体験前にDPの正式名称を明かさないという
 // CLAUDE.md 3.2/21.3の原則を守るため）。
 //
+// Pre/Postの比較は、この画面では行わない。MY DP STATUSの後にある「あなたの振り返り」
+// （js/recap.js）で一括して表示する（重複表示を避けるため）。
+//
 // selfAssessmentと同様、後から見返す価値のある回答のため、保存はmain.js経由で
 // state.js（localStorage）に永続化する（この画面自体は読み書きの window を提供するのみ）。
 
 import { content } from '../data/content.js';
 
-export function renderSurvey({ variant, initialAnswers, previousAnswers, onSave, onComplete }) {
+export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
   const data = content.survey;
   const variantData = data[variant];
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
-  let step = 'form';
   const answers = { ...initialAnswers };
 
   function update() {
     container.innerHTML = '';
-    container.appendChild(step === 'form' ? renderFormView() : renderCompareView());
-  }
-
-  function focusNextButton() {
-    const nextBtn = container.querySelector('.stage-next-btn');
-    if (nextBtn) nextBtn.focus();
+    container.appendChild(renderFormView());
   }
 
   function renderChoiceRow(key, questionData) {
@@ -105,13 +102,7 @@ export function renderSurvey({ variant, initialAnswers, previousAnswers, onSave,
       submitBtn.textContent = variantData.button;
       submitBtn.addEventListener('click', () => {
         onSave({ ...answers });
-        if (variant === 'post') {
-          step = 'compare';
-          update();
-          focusNextButton();
-        } else {
-          onComplete();
-        }
+        onComplete();
       });
       submitBtnSlot.appendChild(submitBtn);
     }
@@ -146,61 +137,6 @@ export function renderSurvey({ variant, initialAnswers, previousAnswers, onSave,
     submitBtnSlot = document.createElement('div');
     wrap.appendChild(submitBtnSlot);
     refreshSubmitButton();
-
-    return wrap;
-  }
-
-  function renderCompareRow(label, questionData, key) {
-    const row = document.createElement('div');
-    row.className = 'compare-row';
-
-    const q = document.createElement('p');
-    q.className = 'compare-question';
-    q.textContent = label;
-    row.appendChild(q);
-
-    const pair = document.createElement('div');
-    pair.className = 'compare-pair';
-
-    const pre = document.createElement('p');
-    pre.className = 'compare-value compare-value-pre';
-    pre.textContent = `${variantData.preLabel}：${previousAnswers[key] || '（未回答）'}`;
-    pair.appendChild(pre);
-
-    const post = document.createElement('p');
-    post.className = 'compare-value compare-value-post';
-    post.textContent = `${variantData.postLabel}：${answers[key] || '（未回答）'}`;
-    pair.appendChild(post);
-
-    row.appendChild(pair);
-    return row;
-  }
-
-  function renderCompareView() {
-    const wrap = document.createElement('div');
-    wrap.className = 'stage-inner';
-
-    const title = document.createElement('h2');
-    title.className = 'stage-mission-title';
-    title.textContent = variantData.compareTitle;
-    wrap.appendChild(title);
-
-    const list = document.createElement('div');
-    list.className = 'compare-list';
-    list.appendChild(renderCompareRow(data.common.q1.question, data.common.q1, 'awareness'));
-    list.appendChild(renderCompareRow(data.common.q2.question, data.common.q2, 'understanding'));
-    list.appendChild(renderCompareRow(variantData.q3.question, variantData.q3, 'application'));
-    list.appendChild(renderCompareRow(data.common.q4.question, data.common.q4, 'selfAwareness'));
-    wrap.appendChild(list);
-
-    const nextBtn = document.createElement('button');
-    nextBtn.type = 'button';
-    nextBtn.className = 'btn btn-primary stage-next-btn';
-    nextBtn.textContent = variantData.compareButton;
-    nextBtn.addEventListener('click', () => {
-      onComplete();
-    });
-    wrap.appendChild(nextBtn);
 
     return wrap;
   }

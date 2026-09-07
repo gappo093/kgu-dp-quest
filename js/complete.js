@@ -7,22 +7,23 @@
 //   4. table   : Know→DP1〜Act→DP4の対応表
 // ステップ間には必ず学生の能動的なクリックを挟み、「明かされる」感覚を保つ。
 //
-// 途中のステップ（badges/reflect/reveal/table）はモジュール内ローカル変数のみで保持し、
-// state.js（localStorage）には保存しない（画面に入り直すと常にbadgesから）。
+// 途中のステップ（badges/reflect/reveal/table）自体はモジュール内ローカル変数のみで保持する
+// （画面に入り直すと常にbadgesから）。ただしReflectの回答（選択・自由記述）だけは、
+// 「あなたの振り返り」画面で再表示するため、確定時にonReflectSave経由でstate.jsに永続化する。
 
 import { content } from '../data/content.js';
 
 const BADGE_ORDER = ['know', 'see', 'think', 'act'];
 const BADGE_LETTERS = { know: 'K', see: 'S', think: 'T', act: 'A' };
 
-export function renderComplete({ onComplete }) {
+export function renderComplete({ initialReflect, onReflectSave, onComplete }) {
   const data = content.complete;
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
   let step = 'badges';
-  const reflectSelected = new Set();
-  let reflectText = '';
+  const reflectSelected = new Set(initialReflect ? initialReflect.selected : []);
+  let reflectText = initialReflect ? initialReflect.text : '';
 
   function update() {
     container.innerHTML = '';
@@ -133,7 +134,10 @@ export function renderComplete({ onComplete }) {
         nextBtn.type = 'button';
         nextBtn.className = 'btn btn-primary stage-next-btn';
         nextBtn.textContent = reflectData.nextButton;
-        nextBtn.addEventListener('click', () => goToStep('reveal'));
+        nextBtn.addEventListener('click', () => {
+          onReflectSave({ selected: Array.from(reflectSelected), text: reflectText });
+          goToStep('reveal');
+        });
         submitBtnSlot.appendChild(nextBtn);
       }
     }
