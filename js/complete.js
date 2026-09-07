@@ -244,6 +244,11 @@ export function renderComplete({ initialReflect, onReflectSave, onComplete }) {
     });
     wrap.appendChild(table);
 
+    const definition = document.createElement('p');
+    definition.className = 'stage-question';
+    definition.textContent = data.dpDefinition;
+    wrap.appendChild(definition);
+
     const nextBtn = document.createElement('button');
     nextBtn.type = 'button';
     nextBtn.className = 'btn btn-primary stage-next-btn';

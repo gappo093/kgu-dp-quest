@@ -494,6 +494,8 @@ export const content = {
           { label: '住民の意見を聞く場を設けてから方針を説明する' },
         ],
         closing: '一人だけの判断では、ここまでの情報も対応も揃いませんでした。',
+        closingConsulted:
+          '地域住民の声を聞いたことで、判断にも説明にも厚みが加わりました。それでも、実際にどう伝わるかは、住民の反応を見ながら確認していく必要があります。',
         outcome: 'badge',
       },
 
@@ -539,6 +541,8 @@ export const content = {
       { from: 'Think', to: 'DP3 考える／思考力・表現力' },
       { from: 'Act', to: 'DP4 働きかける／主体性・協働性' },
     ],
+    dpDefinition:
+      '関東学院大学は、教育研究上の目的のもとに掲げるこの4つの力を備え、所定の単位を修得した学生に学位を授与します。これが「ディプロマ・ポリシー（学位授与の方針）」です。',
     nextButton: '次へ',
   },
 
@@ -626,7 +630,18 @@ export const content = {
     pastSectionTitle: 'すでに通ってきた科目',
     upcomingSectionTitle: 'これから履修する科目',
     futureNote: '将来的には、学部・学科ごとの科目マップに発展させる予定です。',
-    reviewButton: 'QUESTを振り返る',
+    finishButton: 'QUESTを終える',
+  },
+
+  // YOUR NEXT QUESTから独立したエンディング画面（spec doc 11.4）。
+  // 「これから何を学ぶか」の案内（nextQuest）と「体験の締めくくり」を1画面で
+  // 兼ねていたことで終了地点が分かりにくいという指摘を受け、分離した。
+  ending: {
+    title: 'KGU DP QUEST',
+    message: [
+      'ここでDPについて学ぶ体験は終了です。',
+      'KGU DP QUESTにご参加いただき、ありがとうございました。',
+    ],
     restartButton: 'はじめから',
     restartConfirm: 'これまでの進行状況を消去して、最初からやり直しますか？',
   },

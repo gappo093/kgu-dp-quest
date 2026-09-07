@@ -11,6 +11,7 @@ import { renderStage4Act } from './stage4-act.js';
 import { renderComplete } from './complete.js';
 import { renderStatus, renderNextQuest } from './status.js';
 import { renderRecap } from './recap.js';
+import { renderEnding } from './ending.js';
 
 const app = document.getElementById('app');
 let state = loadState();
@@ -109,11 +110,7 @@ function render() {
         },
       })
     );
-  } else if (currentScreen === 'complete' || currentScreen === 'complete-review') {
-    // 'complete'は初回のクリア直後（この後Post調査等の終盤フローへ進む）、
-    // 'complete-review'はYOUR NEXT QUESTの「QUESTを振り返る」からの再訪問
-    // （Post調査・MY DP STATUS・あなたの振り返りをやり直させず、直接戻す）。
-    const isReview = currentScreen === 'complete-review';
+  } else if (currentScreen === 'complete') {
     app.appendChild(
       renderComplete({
         initialReflect: state.reflect,
@@ -122,7 +119,7 @@ function render() {
           saveState(state);
         },
         onComplete: () => {
-          navigateTo(isReview ? 'next-quest' : 'post-survey');
+          navigateTo('post-survey');
         },
       })
     );
@@ -154,9 +151,14 @@ function render() {
     app.appendChild(
       renderNextQuest({
         initialGrade: state.grade,
-        onReview: () => {
-          navigateTo('complete-review');
+        onFinish: () => {
+          navigateTo('ending');
         },
+      })
+    );
+  } else if (currentScreen === 'ending') {
+    app.appendChild(
+      renderEnding({
         onRestart: () => {
           state = resetState();
           navigateTo('grade-select');

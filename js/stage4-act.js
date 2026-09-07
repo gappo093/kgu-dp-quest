@@ -253,10 +253,16 @@ export function renderStage4Act({ grade, onComplete }) {
         })
       );
 
+      const consultedResidents = Boolean(node.optionalContact) && consulted.has(node.optionalContact.character);
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent = tier === 'advanced' ? data.phaseCClosingAdvanced : node.closing;
+      closing.textContent =
+        tier === 'advanced'
+          ? data.phaseCClosingAdvanced
+          : consultedResidents
+            ? node.closingConsulted
+            : node.closing;
       wrap.appendChild(closing);
 
       const nextBtn = document.createElement('button');

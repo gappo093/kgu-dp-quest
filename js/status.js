@@ -176,7 +176,7 @@ export function renderStatus({ initialSelfAssessment, onSave, onComplete }) {
 // QUEST全体の最後の画面。学年は送信・保存せず、その場の表示切り替えにのみ使う
 // （state.jsのスキーマには一切影響しない）。オープンキャンパス参加者・保護者・
 // 教職員など学年を持たない利用者もいる（2章）ため、学年未選択でも終了できるようにする。
-export function renderNextQuest({ initialGrade, onReview, onRestart }) {
+export function renderNextQuest({ initialGrade, onFinish }) {
   const data = content.nextQuest;
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
@@ -243,23 +243,12 @@ export function renderNextQuest({ initialGrade, onReview, onRestart }) {
     const actions = document.createElement('div');
     actions.className = 'top-actions';
 
-    const reviewBtn = document.createElement('button');
-    reviewBtn.type = 'button';
-    reviewBtn.className = 'btn btn-primary';
-    reviewBtn.textContent = data.reviewButton;
-    reviewBtn.addEventListener('click', onReview);
-    actions.appendChild(reviewBtn);
-
-    const restartBtn = document.createElement('button');
-    restartBtn.type = 'button';
-    restartBtn.className = 'btn btn-secondary';
-    restartBtn.textContent = data.restartButton;
-    restartBtn.addEventListener('click', () => {
-      const confirmed = window.confirm(data.restartConfirm);
-      if (!confirmed) return;
-      onRestart();
-    });
-    actions.appendChild(restartBtn);
+    const finishBtn = document.createElement('button');
+    finishBtn.type = 'button';
+    finishBtn.className = 'btn btn-primary';
+    finishBtn.textContent = data.finishButton;
+    finishBtn.addEventListener('click', onFinish);
+    actions.appendChild(finishBtn);
 
     wrap.appendChild(actions);
 
