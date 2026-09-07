@@ -10,14 +10,20 @@
 import { content } from '../data/content.js';
 import { depthTierForGrade } from './grade-depth.js';
 
-const AGED_LEVEE_SVG = `
-<svg viewBox="0 0 320 120" role="img" aria-labelledby="agedLeveeDiagramTitle">
-  <title id="agedLeveeDiagramTitle">築60年の老朽化した堤防の模式図。堤防の斜面にひびが入り、すぐそばまで川の水位が迫っている。</title>
-  <rect x="0" y="60" width="130" height="60" fill="#2e6f9e" />
-  <path d="M108 40 Q120 50 116 62" stroke="#6fc3ff" stroke-width="2" fill="none" opacity="0.7" />
-  <path d="M130 120 L172 32 L320 32 L320 120 Z" fill="#a9885f" />
-  <rect x="172" y="22" width="148" height="10" rx="2" fill="#8a6a45" />
-  <path d="M205 34 L213 48 L207 48 L215 62" stroke="#ff8a3d" stroke-width="1.8" fill="none" />
+const FLOOD_RISK_SVG = `
+<svg viewBox="0 0 320 120" role="img" aria-labelledby="floodRiskDiagramTitle">
+  <title id="floodRiskDiagramTitle">台風接近と河川の水位上昇を示す模式図。雨雲の下で川の水位が高まり、警戒を示す注意マークが表示されている。</title>
+  <ellipse cx="100" cy="30" rx="50" ry="18" fill="#6fc3ff" opacity="0.5" />
+  <ellipse cx="180" cy="24" rx="40" ry="15" fill="#6fc3ff" opacity="0.4" />
+  <path d="M80 50 L74 66" stroke="#3aa0ff" stroke-width="2" />
+  <path d="M110 50 L104 66" stroke="#3aa0ff" stroke-width="2" />
+  <path d="M140 50 L134 66" stroke="#3aa0ff" stroke-width="2" />
+  <path d="M170 46 L164 62" stroke="#3aa0ff" stroke-width="2" />
+  <rect x="0" y="90" width="320" height="30" fill="#2e6f9e" />
+  <path d="M0 82 Q80 72 160 82 T320 82" stroke="#6fc3ff" stroke-width="3" fill="none" />
+  <path d="M255 60 L275 92 L235 92 Z" fill="none" stroke="#ff8a3d" stroke-width="3" stroke-linejoin="round" />
+  <rect x="253.5" y="68" width="3" height="7" fill="#ff8a3d" />
+  <circle cx="255" cy="80" r="1.6" fill="#ff8a3d" />
 </svg>`;
 
 export function renderStage2See({ grade, onComplete }) {
@@ -72,7 +78,7 @@ export function renderStage2See({ grade, onComplete }) {
   function renderDiagram() {
     const diagram = document.createElement('div');
     diagram.className = 'bridge-diagram';
-    diagram.innerHTML = AGED_LEVEE_SVG;
+    diagram.innerHTML = FLOOD_RISK_SVG;
     return diagram;
   }
 
