@@ -1,9 +1,13 @@
-// KGU DP QUEST - DP理解度Pre/Postアンケート（v0.2 6章）
+// KGU DP QUEST - DP理解度Pre/Postアンケート（v0.2 6章、6.2改訂）
 //
-// Pre（学年選択の直後）とPost（DP開示後）で同じ形式の4問（認知・理解・適用・自己認識）に
-// 答えてもらう。Q3「適用」のみ、Preでは正式名称（Know/See/Think/Act）を伏せた言い換えで
-// 出題し、Postで初めて正式名称付きの選択肢を出す（体験前にDPの正式名称を明かさないという
-// CLAUDE.md 3.2/21.3の原則を守るため）。
+// Pre（学年選択の直後）とPost（DP開示後）で同じ形式の質問に答えてもらう。
+// 「適用」設問のみ他3問（自己申告）と性質が異なる客観的な知識確認で、
+// Know/See/Think/Actそれぞれについて1問ずつ計4問を全員・全学年に共通で出題する
+// （ランダム抽出はしない）。Preでは正式名称（Know/See/Think/Act）を伏せた言い換えの
+// 選択肢を出し、正誤は表示しない（体験前にDPの正式名称を明かさないという
+// CLAUDE.md 3.2/21.3の原則を守るため）。Postでは正式名称の選択肢を出し、
+// KNOWと同様に選択直後の正誤表示を行う（4つのMissionを終えても理解が曖昧なままでは
+// 正しい理解につながらないという判断による、spec doc 6.2改訂）。
 //
 // Pre/Postの比較は、この画面では行わない。MY DP STATUSの後にある「あなたの振り返り」
 // （js/recap.js）で一括して表示する（重複表示を避けるため）。
@@ -18,8 +22,12 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
   const variantData = data[variant];
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
+  const isPost = variant === 'post';
 
-  const answers = { ...initialAnswers };
+  const answers = {
+    ...initialAnswers,
+    application: { ...initialAnswers.application },
+  };
 
   function update() {
     container.innerHTML = '';
@@ -81,6 +89,72 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
     return row;
   }
 
+  // 「適用」設問1問分。Postのみ選択直後に正誤を表示し、以後その設問は選び直せない
+  // （KNOWの即時フィードバックと同じパターン）。
+  function renderApplicationRow(questionData) {
+    const row = document.createElement('fieldset');
+    row.className = 'assessment-row';
+    const questionText = isPost ? questionData.stemPost : questionData.stemPre;
+
+    const legend = document.createElement('legend');
+    legend.className = 'assessment-legend';
+    legend.textContent = questionText;
+    row.appendChild(legend);
+
+    const choices = isPost ? data.common.applicationChoicesPost : data.common.applicationChoicesPre;
+    const selectedDpKey = answers.application[questionData.dpKey];
+    const locked = isPost && selectedDpKey != null;
+
+    const choiceList = document.createElement('div');
+    choiceList.className = 'choice-list';
+    choiceList.setAttribute('role', 'group');
+    choiceList.setAttribute('aria-label', questionText);
+
+    choices.forEach((choice) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      let text = choice.label;
+
+      if (locked) {
+        btn.disabled = true;
+        if (choice.dpKey === questionData.dpKey) {
+          btn.classList.add('choice-correct');
+          text += ' ✓';
+        } else if (choice.dpKey === selectedDpKey) {
+          btn.classList.add('choice-incorrect');
+          text += ' ✗';
+        }
+      } else if (choice.dpKey === selectedDpKey) {
+        btn.classList.add('choice-selected');
+      }
+      btn.textContent = text;
+
+      btn.addEventListener('click', () => {
+        if (locked) return;
+        answers.application[questionData.dpKey] = choice.dpKey;
+        update();
+        refreshSubmitButton();
+      });
+      choiceList.appendChild(btn);
+    });
+    row.appendChild(choiceList);
+
+    if (locked) {
+      const isCorrect = selectedDpKey === questionData.dpKey;
+      const feedback = document.createElement('p');
+      feedback.className = `stage-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+      feedback.setAttribute('role', 'status');
+      const correctChoice = choices.find((c) => c.dpKey === questionData.dpKey);
+      feedback.textContent = isCorrect
+        ? data.common.applicationCorrectFeedback
+        : `${data.common.applicationIncorrectFeedbackPrefix}${correctChoice.label}${data.common.applicationIncorrectFeedbackSuffix}`;
+      row.appendChild(feedback);
+    }
+
+    return row;
+  }
+
   let submitBtnSlot;
 
   function isComplete() {
@@ -88,7 +162,7 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
       answers.awareness != null &&
       typeof answers.understanding === 'string' &&
       answers.understanding.trim().length > 0 &&
-      answers.application != null &&
+      ['know', 'see', 'think', 'act'].every((key) => answers.application[key] != null) &&
       answers.selfAwareness != null
     );
   }
@@ -101,7 +175,7 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
       submitBtn.className = 'btn btn-primary stage-next-btn';
       submitBtn.textContent = variantData.button;
       submitBtn.addEventListener('click', () => {
-        onSave({ ...answers });
+        onSave({ ...answers, application: { ...answers.application } });
         onComplete();
       });
       submitBtnSlot.appendChild(submitBtn);
@@ -130,7 +204,9 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
     list.className = 'assessment-list';
     list.appendChild(renderChoiceRow('awareness', data.common.q1));
     list.appendChild(renderTextRow('understanding', data.common.q2));
-    list.appendChild(renderChoiceRow('application', variantData.q3));
+    data.common.applicationQuestions.forEach((q) => {
+      list.appendChild(renderApplicationRow(q));
+    });
     list.appendChild(renderChoiceRow('selfAwareness', data.common.q4));
     wrap.appendChild(list);
 

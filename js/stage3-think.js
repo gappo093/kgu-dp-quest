@@ -13,9 +13,9 @@
 import { content } from '../data/content.js';
 import { depthTierForGrade } from './grade-depth.js';
 
-const SENSOR_ALERT_SVG = `
-<svg viewBox="0 0 120 80" role="img" aria-labelledby="sensorAlertTitle">
-  <title id="sensorAlertTitle">斜面の傾斜計が異常な変位を検知したことを示すアイコン。</title>
+const SLOPE_ALERT_SVG = `
+<svg viewBox="0 0 120 80" role="img" aria-labelledby="slopeAlertTitle">
+  <title id="slopeAlertTitle">斜面の傾斜計が異常な変位を検知したことを示すアイコン。</title>
   <circle cx="60" cy="28" r="13" fill="none" stroke="#3aa0ff" stroke-width="3" />
   <circle cx="60" cy="28" r="4.5" fill="#3aa0ff" />
   <path d="M60 41 L60 58" stroke="#3aa0ff" stroke-width="3" />
@@ -23,8 +23,36 @@ const SENSOR_ALERT_SVG = `
   <path d="M38 16 Q60 0 82 16" stroke="#ff8a3d" stroke-width="2.4" fill="none" stroke-dasharray="4 4" />
 </svg>`;
 
+const RIVER_ALERT_SVG = `
+<svg viewBox="0 0 120 80" role="img" aria-labelledby="riverAlertTitle">
+  <title id="riverAlertTitle">河川の水位計が急激な水位上昇を検知したことを示すアイコン。</title>
+  <rect x="54" y="14" width="12" height="50" rx="2" fill="none" stroke="#3aa0ff" stroke-width="3" />
+  <rect x="54" y="40" width="12" height="24" fill="#3aa0ff" opacity="0.5" />
+  <path d="M45 64 L75 64" stroke="#6fc3ff" stroke-width="3" />
+  <path d="M38 16 Q60 0 82 16" stroke="#ff8a3d" stroke-width="2.4" fill="none" stroke-dasharray="4 4" />
+</svg>`;
+
+const ROAD_ALERT_SVG = `
+<svg viewBox="0 0 120 80" role="img" aria-labelledby="roadAlertTitle">
+  <title id="roadAlertTitle">市街地の道路に陥没が発生したことを示すアイコン。</title>
+  <rect x="20" y="50" width="80" height="8" fill="#6fc3ff" opacity="0.4" />
+  <ellipse cx="60" cy="54" rx="14" ry="7" fill="#0c1830" stroke="#3aa0ff" stroke-width="2" />
+  <path d="M38 16 Q60 0 82 16" stroke="#ff8a3d" stroke-width="2.4" fill="none" stroke-dasharray="4 4" />
+</svg>`;
+
+const ALERT_ICON_BY_VARIANT = {
+  slope: SLOPE_ALERT_SVG,
+  river: RIVER_ALERT_SVG,
+  road: ROAD_ALERT_SVG,
+};
+
+function pickRandomScenario(scenarios) {
+  return scenarios[Math.floor(Math.random() * scenarios.length)];
+}
+
 export function renderStage3Think({ grade, onComplete }) {
   const data = content.stage3;
+  const scenario = pickRandomScenario(data.scenarios);
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
@@ -32,13 +60,13 @@ export function renderStage3Think({ grade, onComplete }) {
   // 4年はクロージング文をより踏み込んだ内容にする。2〜3年・未選択（3年相当が既定）は
   // 現行の標準版のまま。STEP3は正誤をつけない選択式のままにし、入力形式は変えない。
   const tier = depthTierForGrade(grade);
-  const requiredCardCount = tier === 'basic' ? data.step2BasicRequiredCount : data.infoCards.length;
+  const requiredCardCount = tier === 'basic' ? data.step2BasicRequiredCount : scenario.infoCards.length;
 
   let step = 'step1';
   let step1Index = null;
   let step3Index = null;
   let reportIndex = null;
-  const viewedState = data.infoCards.map(() => false);
+  const viewedState = scenario.infoCards.map(() => false);
   const reportChoices = tier === 'basic' ? data.reportChoices.slice(0, 2) : data.reportChoices;
 
   function update() {
@@ -73,12 +101,12 @@ export function renderStage3Think({ grade, onComplete }) {
 
     const icon = document.createElement('div');
     icon.className = 'alert-icon';
-    icon.innerHTML = SENSOR_ALERT_SVG;
+    icon.innerHTML = ALERT_ICON_BY_VARIANT[scenario.diagramVariant];
     alertBox.appendChild(icon);
 
     const text = document.createElement('div');
     text.className = 'alert-text';
-    data.alertLines.forEach((line) => {
+    scenario.alertLines.forEach((line) => {
       const p = document.createElement('p');
       p.textContent = line;
       text.appendChild(p);
@@ -136,7 +164,7 @@ export function renderStage3Think({ grade, onComplete }) {
     const isSelected = step1Index !== null;
     wrap.appendChild(
       renderChoiceList({
-        choices: data.causeChoices,
+        choices: scenario.causeChoices,
         selectedIndex: step1Index,
         disabled: isSelected,
         onSelect: (idx) => {
@@ -190,7 +218,7 @@ export function renderStage3Think({ grade, onComplete }) {
     // トグル時は進捗テキストとボタンだけをその場で差し替える部分更新にする。
     function refreshProgress() {
       const viewedCount = viewedState.filter(Boolean).length;
-      progress.textContent = `${viewedCount} / ${data.infoCards.length} 枚を確認済み`;
+      progress.textContent = `${viewedCount} / ${scenario.infoCards.length} 枚を確認済み`;
 
       nextBtnSlot.innerHTML = '';
       if (viewedCount >= requiredCardCount) {
@@ -206,7 +234,7 @@ export function renderStage3Think({ grade, onComplete }) {
       }
     }
 
-    data.infoCards.forEach((card, idx) => {
+    scenario.infoCards.forEach((card, idx) => {
       const details = document.createElement('details');
       details.className = 'info-card';
 
@@ -256,7 +284,7 @@ export function renderStage3Think({ grade, onComplete }) {
 
     const reminder = document.createElement('p');
     reminder.className = 'step-reminder';
-    reminder.textContent = `${data.step1AnswerReminderPrefix}${data.causeChoices[step1Index]}${data.step1AnswerReminderSuffix}`;
+    reminder.textContent = `${data.step1AnswerReminderPrefix}${scenario.causeChoices[step1Index]}${data.step1AnswerReminderSuffix}`;
     wrap.appendChild(reminder);
 
     const questionText = document.createElement('p');
@@ -266,7 +294,7 @@ export function renderStage3Think({ grade, onComplete }) {
 
     wrap.appendChild(
       renderChoiceList({
-        choices: data.causeChoices,
+        choices: scenario.causeChoices,
         selectedIndex: step3Index,
         disabled: showClosing,
         onSelect: (idx) => {

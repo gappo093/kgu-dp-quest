@@ -69,9 +69,21 @@ export function renderRecap({ preSurvey, postSurvey, reflect, onComplete }) {
     surveyList.appendChild(
       renderSurveyCompareRow(surveyData.common.q2.question, preSurvey.understanding, postSurvey.understanding)
     );
-    surveyList.appendChild(
-      renderSurveyCompareRow(surveyData.post.q3.question, preSurvey.application, postSurvey.application)
-    );
+    // 「適用」設問はKnow/See/Think/Actの4問。Pre/Postとも選択されたdpKeyから、
+    // 各時点で実際に表示されていた選択肢ラベルに変換して表示する。
+    const preChoiceLabel = (dpKey) =>
+      (surveyData.common.applicationChoicesPre.find((c) => c.dpKey === dpKey) || {}).label;
+    const postChoiceLabel = (dpKey) =>
+      (surveyData.common.applicationChoicesPost.find((c) => c.dpKey === dpKey) || {}).label;
+    surveyData.common.applicationQuestions.forEach((q) => {
+      surveyList.appendChild(
+        renderSurveyCompareRow(
+          q.stemPost,
+          preChoiceLabel(preSurvey.application[q.dpKey]),
+          postChoiceLabel(postSurvey.application[q.dpKey])
+        )
+      );
+    });
     surveyList.appendChild(
       renderSurveyCompareRow(surveyData.common.q4.question, preSurvey.selfAwareness, postSurvey.selfAwareness)
     );

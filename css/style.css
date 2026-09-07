@@ -950,6 +950,13 @@ button {
   resize: vertical;
 }
 
+/* ブラウザ既定のプレースホルダー色は明るい背景向けのため、暗い背景に対しては
+   コントラスト不足になる（axe-coreのcolor-contrastで検出）。明示的に指定する。 */
+.survey-textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
 .survey-textarea:focus-visible {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: 2px;

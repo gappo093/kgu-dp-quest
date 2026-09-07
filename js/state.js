@@ -3,13 +3,20 @@
 // 進捗はブラウザのlocalStorageにのみ保存する（13章：サーバー不要・個人情報を収集しない）。
 
 const STORAGE_KEY = 'kguDpQuestState';
-const STATE_VERSION = 3;
+const STATE_VERSION = 4;
 
 function getDefaultSurveyAnswers() {
   return {
     awareness: null,
     understanding: '',
-    application: null,
+    // 「適用」設問（spec doc 6.2改訂）：Know/See/Think/Actそれぞれについて
+    // 選択したdpKeyを保持する。値は各設問の選択肢のdpKey（'know'|'see'|'think'|'act'）。
+    application: {
+      know: null,
+      see: null,
+      think: null,
+      act: null,
+    },
     selfAwareness: null,
   };
 }

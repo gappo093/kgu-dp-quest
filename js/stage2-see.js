@@ -26,8 +26,50 @@ const FLOOD_RISK_SVG = `
   <circle cx="255" cy="80" r="1.6" fill="#ff8a3d" />
 </svg>`;
 
+const SHELTER_SVG = `
+<svg viewBox="0 0 320 120" role="img" aria-labelledby="shelterDiagramTitle">
+  <title id="shelterDiagramTitle">避難所の模式図。建物の中に、体調の悪い人・家族連れ・ペット同伴者・外国人住民を示す4つのアイコンが並んでいる。</title>
+  <path d="M10 40 L160 10 L310 40 L310 100 L10 100 Z" fill="none" stroke="var(--color-border)" stroke-width="2" />
+  <circle cx="70" cy="70" r="15" fill="#3ddc97" opacity="0.85" />
+  <path d="M62 70 L78 70 M70 62 L70 78" stroke="#06121f" stroke-width="2.4" />
+  <circle cx="135" cy="70" r="15" fill="#6fc3ff" opacity="0.85" />
+  <circle cx="130" cy="65" r="4" fill="#06121f" opacity="0.5" />
+  <circle cx="200" cy="70" r="15" fill="#ff8a3d" opacity="0.85" />
+  <path d="M193 74 Q200 60 207 74" stroke="#06121f" stroke-width="2.2" fill="none" />
+  <circle cx="265" cy="70" r="15" fill="#ffd166" opacity="0.85" />
+  <path d="M258 74 Q265 64 272 74 Q265 68 258 74" fill="#06121f" opacity="0.6" />
+</svg>`;
+
+const HAZARD_MAP_SVG = `
+<svg viewBox="0 0 320 120" role="img" aria-labelledby="hazardMapDiagramTitle">
+  <title id="hazardMapDiagramTitle">住宅地のハザードマップ模式図。区画の一部が浸水想定区域として青く着色されている。</title>
+  <rect x="20" y="20" width="280" height="80" fill="none" stroke="var(--color-border)" stroke-width="1.5" />
+  <line x1="90" y1="20" x2="90" y2="100" stroke="var(--color-border)" stroke-width="1" />
+  <line x1="160" y1="20" x2="160" y2="100" stroke="var(--color-border)" stroke-width="1" />
+  <line x1="230" y1="20" x2="230" y2="100" stroke="var(--color-border)" stroke-width="1" />
+  <line x1="20" y1="60" x2="300" y2="60" stroke="var(--color-border)" stroke-width="1" />
+  <rect x="90" y="20" width="70" height="40" fill="#3aa0ff" opacity="0.35" />
+  <g fill="#eef3fb" opacity="0.85">
+    <rect x="45" y="70" width="16" height="14" /><path d="M43 70 L53 60 L63 70 Z" />
+    <rect x="115" y="30" width="16" height="14" /><path d="M113 30 L123 20 L133 30 Z" />
+    <rect x="185" y="70" width="16" height="14" /><path d="M183 70 L193 60 L203 70 Z" />
+    <rect x="255" y="30" width="16" height="14" /><path d="M253 30 L263 20 L273 30 Z" />
+  </g>
+</svg>`;
+
+const DIAGRAM_BY_VARIANT = {
+  flood: FLOOD_RISK_SVG,
+  shelter: SHELTER_SVG,
+  hazardMap: HAZARD_MAP_SVG,
+};
+
+function pickRandomScenario(scenarios) {
+  return scenarios[Math.floor(Math.random() * scenarios.length)];
+}
+
 export function renderStage2See({ grade, onComplete }) {
   const data = content.stage2;
+  const scenario = pickRandomScenario(data.scenarios);
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
@@ -35,7 +77,7 @@ export function renderStage2See({ grade, onComplete }) {
   // 踏み込んだ内容にする。2〜3年・未選択（3年相当が既定）は現行の標準版のまま。
   // 往復構造（選択→視点提示→再選択）自体は学年によらず共通で、入力形式は変えない。
   const tier = depthTierForGrade(grade);
-  const choices = tier === 'basic' ? data.choices.slice(0, 2) : data.choices;
+  const choices = tier === 'basic' ? scenario.choices.slice(0, 2) : scenario.choices;
 
   let step = 'intro';
   let round1Index = null;
@@ -52,13 +94,13 @@ export function renderStage2See({ grade, onComplete }) {
         return renderIntroView();
       case 'round1':
         return renderChoiceView({
-          question: data.question,
+          question: scenario.question,
           selectedIndex: round1Index,
           showFollowUp: false,
         });
       case 'round1-feedback':
         return renderChoiceView({
-          question: data.question,
+          question: scenario.question,
           selectedIndex: round1Index,
           showFollowUp: true,
         });
@@ -78,7 +120,7 @@ export function renderStage2See({ grade, onComplete }) {
   function renderDiagram() {
     const diagram = document.createElement('div');
     diagram.className = 'bridge-diagram';
-    diagram.innerHTML = FLOOD_RISK_SVG;
+    diagram.innerHTML = DIAGRAM_BY_VARIANT[scenario.diagramVariant];
     return diagram;
   }
 
@@ -95,12 +137,12 @@ export function renderStage2See({ grade, onComplete }) {
 
     const lead = document.createElement('p');
     lead.className = 'stage-question';
-    lead.textContent = data.introLead;
+    lead.textContent = scenario.introLead;
     wrap.appendChild(lead);
 
     const factList = document.createElement('ul');
     factList.className = 'scenario-fact-list';
-    data.scenarioFacts.forEach((fact) => {
+    scenario.scenarioFacts.forEach((fact) => {
       const li = document.createElement('li');
       li.textContent = fact;
       factList.appendChild(li);
@@ -183,19 +225,19 @@ export function renderStage2See({ grade, onComplete }) {
 
     const name = document.createElement('p');
     name.className = 'character-name';
-    name.textContent = data.residentCharacterName;
+    name.textContent = scenario.residentCharacterName;
     card.appendChild(name);
 
     const role = document.createElement('p');
     role.className = 'character-role';
-    role.textContent = data.residentCharacterRole;
+    role.textContent = scenario.residentCharacterRole;
     card.appendChild(role);
 
     wrap.appendChild(card);
 
     const dialogue = document.createElement('div');
     dialogue.className = 'dialogue-box';
-    data.residentDialogue.forEach((line) => {
+    scenario.residentDialogue.forEach((line) => {
       const p = document.createElement('p');
       p.textContent = line;
       dialogue.appendChild(p);
@@ -251,7 +293,7 @@ export function renderStage2See({ grade, onComplete }) {
       const closing = document.createElement('p');
       closing.className = 'stage-feedback feedback-neutral';
       closing.setAttribute('role', 'status');
-      closing.textContent = tier === 'advanced' ? data.round2ClosingAdvanced : data.round2Closing;
+      closing.textContent = tier === 'advanced' ? scenario.round2ClosingAdvanced : scenario.round2Closing;
       wrap.appendChild(closing);
 
       const nextBtn = document.createElement('button');
