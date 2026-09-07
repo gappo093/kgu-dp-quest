@@ -89,8 +89,8 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
     return row;
   }
 
-  // 「適用」設問1問分。Postのみ選択直後に正誤を表示し、以後その設問は選び直せない
-  // （KNOWの即時フィードバックと同じパターン）。
+  // 「適用」設問1問分。正誤はこの画面では表示しない。Postの正誤は「あなたの振り返り」
+  // （js/recap.js）でPre/Postの回答と合わせて一括表示する。
   function renderApplicationRow(questionData) {
     const row = document.createElement('fieldset');
     row.className = 'assessment-row';
@@ -103,7 +103,6 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
 
     const choices = isPost ? data.common.applicationChoicesPost : data.common.applicationChoicesPre;
     const selectedDpKey = answers.application[questionData.dpKey];
-    const locked = isPost && selectedDpKey != null;
 
     const choiceList = document.createElement('div');
     choiceList.className = 'choice-list';
@@ -114,24 +113,10 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'choice-btn';
-      let text = choice.label;
-
-      if (locked) {
-        btn.disabled = true;
-        if (choice.dpKey === questionData.dpKey) {
-          btn.classList.add('choice-correct');
-          text += ' ✓';
-        } else if (choice.dpKey === selectedDpKey) {
-          btn.classList.add('choice-incorrect');
-          text += ' ✗';
-        }
-      } else if (choice.dpKey === selectedDpKey) {
-        btn.classList.add('choice-selected');
-      }
-      btn.textContent = text;
+      btn.textContent = choice.label;
+      if (choice.dpKey === selectedDpKey) btn.classList.add('choice-selected');
 
       btn.addEventListener('click', () => {
-        if (locked) return;
         answers.application[questionData.dpKey] = choice.dpKey;
         update();
         refreshSubmitButton();
@@ -139,18 +124,6 @@ export function renderSurvey({ variant, initialAnswers, onSave, onComplete }) {
       choiceList.appendChild(btn);
     });
     row.appendChild(choiceList);
-
-    if (locked) {
-      const isCorrect = selectedDpKey === questionData.dpKey;
-      const feedback = document.createElement('p');
-      feedback.className = `stage-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
-      feedback.setAttribute('role', 'status');
-      const correctChoice = choices.find((c) => c.dpKey === questionData.dpKey);
-      feedback.textContent = isCorrect
-        ? data.common.applicationCorrectFeedback
-        : `${data.common.applicationIncorrectFeedbackPrefix}${correctChoice.label}${data.common.applicationIncorrectFeedbackSuffix}`;
-      row.appendChild(feedback);
-    }
 
     return row;
   }

@@ -1001,6 +1001,11 @@ button {
   font-weight: 700;
 }
 
+.compare-value-incorrect {
+  color: var(--color-accent-orange);
+  font-weight: 700;
+}
+
 .reflect-mapping-list {
   width: 100%;
   display: flex;

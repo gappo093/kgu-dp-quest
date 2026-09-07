@@ -16,7 +16,10 @@ export function renderRecap({ preSurvey, postSurvey, reflect, onComplete }) {
   const container = document.createElement('section');
   container.className = 'screen screen-stage';
 
-  function renderSurveyCompareRow(questionText, preAnswer, postAnswer) {
+  // correctness: undefined（自己申告設問。正誤なし）/ true（適用設問・正解）/
+  // false（適用設問・不正解）。適用設問の正誤はこの画面でのみ、Postの回答直後ではなく
+  // ここで一括して表示する。
+  function renderSurveyCompareRow(questionText, preAnswer, postAnswer, correctness, correctAnswerLabel) {
     const row = document.createElement('div');
     row.className = 'compare-row';
 
@@ -34,8 +37,17 @@ export function renderRecap({ preSurvey, postSurvey, reflect, onComplete }) {
     pair.appendChild(pre);
 
     const post = document.createElement('p');
-    post.className = 'compare-value compare-value-post';
-    post.textContent = `${data.postLabel}：${postAnswer || '（未回答）'}`;
+    let postText = `${data.postLabel}：${postAnswer || '（未回答）'}`;
+    if (correctness === true) {
+      postText += data.applicationCorrectSuffix;
+      post.className = 'compare-value compare-value-post';
+    } else if (correctness === false) {
+      postText += `${data.applicationIncorrectSuffix}${correctAnswerLabel}${data.applicationIncorrectSuffixEnd}`;
+      post.className = 'compare-value compare-value-incorrect';
+    } else {
+      post.className = 'compare-value compare-value-post';
+    }
+    post.textContent = postText;
     pair.appendChild(post);
 
     row.appendChild(pair);
@@ -70,17 +82,22 @@ export function renderRecap({ preSurvey, postSurvey, reflect, onComplete }) {
       renderSurveyCompareRow(surveyData.common.q2.question, preSurvey.understanding, postSurvey.understanding)
     );
     // 「適用」設問はKnow/See/Think/Actの4問。Pre/Postとも選択されたdpKeyから、
-    // 各時点で実際に表示されていた選択肢ラベルに変換して表示する。
+    // 各時点で実際に表示されていた選択肢ラベルに変換して表示する。Postの正誤は
+    // Postアンケート画面では出さず、ここで一括して表示する。
     const preChoiceLabel = (dpKey) =>
       (surveyData.common.applicationChoicesPre.find((c) => c.dpKey === dpKey) || {}).label;
     const postChoiceLabel = (dpKey) =>
       (surveyData.common.applicationChoicesPost.find((c) => c.dpKey === dpKey) || {}).label;
     surveyData.common.applicationQuestions.forEach((q) => {
+      const postAnswerKey = postSurvey.application[q.dpKey];
+      const correctness = postAnswerKey == null ? undefined : postAnswerKey === q.dpKey;
       surveyList.appendChild(
         renderSurveyCompareRow(
           q.stemPost,
           preChoiceLabel(preSurvey.application[q.dpKey]),
-          postChoiceLabel(postSurvey.application[q.dpKey])
+          postChoiceLabel(postAnswerKey),
+          correctness,
+          postChoiceLabel(q.dpKey)
         )
       );
     });

@@ -95,9 +95,6 @@ export const content = {
         { label: 'Think', dpKey: 'think' },
         { label: 'Act', dpKey: 'act' },
       ],
-      applicationCorrectFeedback: '正解！',
-      applicationIncorrectFeedbackPrefix: '不正解。正解は「',
-      applicationIncorrectFeedbackSuffix: '」',
     },
     pre: {
       intro: [
@@ -859,6 +856,11 @@ export const content = {
     surveySectionTitle: 'DP理解度チェックの変化',
     preLabel: '最初の回答',
     postLabel: '今の回答',
+    // 「適用」設問（Know/See/Think/Actの4問）のみ、Postの回答の正誤をここで一括表示する
+    // （Postアンケート画面自体では表示しない）。
+    applicationCorrectSuffix: '（正解）',
+    applicationIncorrectSuffix: '（不正解。正解は「',
+    applicationIncorrectSuffixEnd: '」）',
     reflectSectionTitle: 'あなたが選んだ力',
     reflectTextIntro: 'あなたはこう書きました：',
     // complete.reflect.optionsと同じ並び順（Know→See→Think→Actの順）で対応させる。
