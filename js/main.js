@@ -209,7 +209,7 @@ function renderTopScreen() {
   if (hasProgress(state)) {
     const continueBtn = document.createElement('button');
     continueBtn.type = 'button';
-    continueBtn.className = 'btn btn-primary';
+    continueBtn.className = 'btn btn-secondary';
     continueBtn.textContent = t.continueButton;
     continueBtn.addEventListener('click', () => {
       navigateTo(state.resumeScreen || 'grade-select');
@@ -218,7 +218,7 @@ function renderTopScreen() {
 
     const restartBtn = document.createElement('button');
     restartBtn.type = 'button';
-    restartBtn.className = 'btn btn-secondary';
+    restartBtn.className = 'btn btn-primary';
     restartBtn.textContent = t.restartButton;
     restartBtn.addEventListener('click', () => {
       const confirmed = window.confirm(t.restartConfirm);
